@@ -1,0 +1,95 @@
+<div class="stock-list">
+  <header class="page-header">
+    <div>
+      <h1>Stocks</h1>
+      <p>Gestion des produits et consommables du cabinet</p>
+    </div>
+    <a routerLink="/inventory/new" class="dc-btn-primary">
+      <svg lucidePlus [size]="16"></svg>
+      Nouveau produit
+    </a>
+  </header>
+
+  @if (alertsCount() > 0) {
+    <div class="alert-banner">
+      <svg lucideAlertTriangle [size]="18"></svg>
+      <strong>{{ alertsCount() }}</strong> produit(s) en alerte —
+      <a routerLink="/inventory" class="underline">Voir les alertes</a>
+    </div>
+  }
+
+  <div class="dc-card filters">
+    <div class="filter-search">
+      <svg lucideSearch [size]="16"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none"></svg>
+      <input [ngModel]="search()" (ngModelChange)="onSearch($event)"
+        placeholder="Rechercher un produit..." class="dc-input pl-9" />
+    </div>
+    <div class="filter-category">
+      <svg lucideFilter [size]="14" class="text-ink-light"></svg>
+      <select [ngModel]="category()" (ngModelChange)="onCategory($event)" class="dc-input">
+        <option value="ALL">Toutes catégories</option>
+        @for (item of categories; track item) {
+          <option [value]="item">{{ item }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+
+  <div class="dc-card overflow-x-auto">
+    @if (loading()) {
+      <div class="loading-state"><div class="spinner"></div><p>Chargement...</p></div>
+    } @else if (products().length === 0) {
+      <div class="empty-state"><p>Aucun produit trouvé</p></div>
+    } @else {
+      <table class="dc-table">
+        <thead>
+          <tr>
+            <th>Code</th><th>Produit</th><th>Catégorie</th><th>Qté</th>
+            <th>Seuil min</th><th>Prix achat</th><th>Péremption</th>
+            <th>Statut</th><th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of products(); track product.id) {
+            <tr [class.row-alert]="isAlert(product)">
+              <td><span class="code-badge">{{ product.code }}</span></td>
+              <td><strong>{{ product.name }}</strong></td>
+              <td>{{ product.category }}</td>
+              <td>
+                <span class="qty" [class.qty-low]="product.quantity <= product.minQuantity">
+                  {{ product.quantity }}
+                </span>
+              </td>
+              <td>{{ product.minQuantity }}</td>
+              <td>{{ product.purchasePriceFcfa | fcfa }}</td>
+              <td>{{ product.expirationDate || '—' }}</td>
+              <td><span class="dc-badge" [ngClass]="statusClass(product)">{{ statusLabel(product) }}</span></td>
+              <td>
+                <div class="row-actions">
+                  <a [routerLink]="['/inventory', product.id, 'edit']" class="row-btn" title="Modifier">
+                    <svg lucideEdit [size]="14"></svg>
+                  </a>
+                  <a [routerLink]="['/inventory/movement']"
+                    [queryParams]="{ productId: product.id, type: 'ENTREE' }"
+                    class="row-btn row-btn--success" title="Entrée">
+                    <svg lucideArrowUp [size]="14"></svg>
+                  </a>
+                  <a [routerLink]="['/inventory/movement']"
+                    [queryParams]="{ productId: product.id, type: 'SORTIE' }"
+                    class="row-btn row-btn--danger" title="Sortie">
+                    <svg lucideArrowDown [size]="14"></svg>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

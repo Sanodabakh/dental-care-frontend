@@ -1,0 +1,127 @@
+<section class="space-y-5">
+  <header>
+    <h1 class="text-2xl font-bold text-ink">Caisse</h1>
+    <p class="mt-1 text-sm text-ink-light">Gérez l’ouverture, la clôture et l’historique des sessions.</p>
+  </header>
+
+  @if (error()) {
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+      {{ error() }}
+    </div>
+  }
+  @if (success()) {
+    <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">
+      {{ success() }}
+    </div>
+  }
+
+  @if (currentSession(); as session) {
+    <div class="dc-card space-y-5 p-5">
+      <div class="flex items-start gap-3">
+        <span class="rounded-full bg-green-100 p-2 text-green-700">
+          <lucide-icon [img]="icons.Unlock" [size]="20" />
+        </span>
+        <div class="flex-1">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="font-semibold text-ink">Session ouverte</h2>
+            <span class="dc-badge dc-badge-success">En cours</span>
+          </div>
+          <p class="mt-1 text-sm text-ink-light">Ouverte le {{ session.openedAt | dateFr }} par {{ session.openedBy }}</p>
+        </div>
+      </div>
+      <div class="grid gap-4 rounded-lg bg-slate-50 p-4 sm:grid-cols-2">
+        <div>
+          <p class="text-xs font-medium uppercase text-ink-light">Fond de caisse initial</p>
+          <p class="mt-1 text-lg font-bold text-ink">{{ session.openingAmountFcfa | fcfa }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-medium uppercase text-ink-light">État</p>
+          <p class="mt-1 text-lg font-bold text-green-700">Ouverte</p>
+        </div>
+      </div>
+      <div class="max-w-sm space-y-3">
+        <label class="block">
+          <span class="mb-1 block text-sm font-medium text-ink">Montant compté à la clôture (FCFA)</span>
+          <input class="dc-input" type="number" min="0" step="1"
+            [ngModel]="closingAmount()" (ngModelChange)="updateClosingAmount($event)" />
+        </label>
+        <button type="button" class="dc-btn-primary" [disabled]="saving()" (click)="closeSession()">
+          <lucide-icon [img]="icons.Lock" [size]="16" />
+          {{ saving() ? 'Clôture...' : 'Clôturer la session' }}
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="dc-card space-y-4 p-5">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-blue-50 p-2 text-primary">
+          <lucide-icon [img]="icons.Cash" [size]="20" />
+        </span>
+        <div>
+          <h2 class="font-semibold text-ink">Ouvrir une session</h2>
+          <p class="mt-1 text-sm text-ink-light">Saisissez le montant initial présent dans la caisse.</p>
+        </div>
+      </div>
+      <div class="flex max-w-lg flex-col gap-3 sm:flex-row sm:items-end">
+        <label class="block flex-1">
+          <span class="mb-1 block text-sm font-medium text-ink">Fond de caisse initial (FCFA)</span>
+          <input class="dc-input" type="number" min="0" step="1"
+            [ngModel]="openingAmount()" (ngModelChange)="updateOpeningAmount($event)" />
+        </label>
+        <button type="button" class="dc-btn-primary" [disabled]="saving()" (click)="openSession()">
+          <lucide-icon [img]="icons.Unlock" [size]="16" />
+          {{ saving() ? 'Ouverture...' : 'Ouvrir la caisse' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="dc-card overflow-hidden">
+    <div class="border-b border-slate-200 p-5">
+      <h2 class="font-semibold text-ink">Historique des sessions</h2>
+    </div>
+    @if (sessions().length === 0) {
+      <p class="p-8 text-center text-sm text-ink-light">Aucune session de caisse enregistrée.</p>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="dc-table">
+          <thead>
+            <tr>
+              <th>Ouverture</th>
+              <th>Clôture</th>
+              <th>Ouverture par</th>
+              <th class="text-right">Fond initial</th>
+              <th class="text-right">Montant compté</th>
+              <th class="text-right">Écart</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of sessions(); track item.id) {
+              <tr>
+                <td>{{ item.openedAt | dateFr }}</td>
+                <td>{{ item.closedAt ? (item.closedAt | dateFr) : '—' }}</td>
+                <td>{{ item.openedBy }}</td>
+                <td class="text-right">{{ item.openingAmountFcfa | fcfa }}</td>
+                <td class="text-right">{{ item.closingAmountFcfa !== undefined ? (item.closingAmountFcfa | fcfa) : '—' }}</td>
+                <td class="text-right">
+                  @if (item.differenceFcfa !== undefined) {
+                    <span [class.text-red-600]="item.differenceFcfa !== 0"
+                      [class.text-green-700]="item.differenceFcfa === 0">
+                      {{ item.differenceFcfa | fcfa }}
+                    </span>
+                  } @else { — }
+                </td>
+                <td>
+                  <span [class]="item.status === 'OUVERTE' ? 'dc-badge dc-badge-success' : 'dc-badge dc-badge-neutral'">
+                    {{ item.status === 'OUVERTE' ? 'Ouverte' : 'Fermée' }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>

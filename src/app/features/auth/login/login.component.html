@@ -1,0 +1,103 @@
+<div class="login-shell min-h-screen grid lg:grid-cols-2 bg-surface">
+
+  <!-- Panneau gauche (branding) -->
+  <div class="login-brand hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-primary to-primary-dark text-white">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-white/10 grid place-items-center">
+        <lucide-icon [img]="icons.Smile" [size]="22" />
+      </div>
+      <div>
+        <div class="text-lg font-bold tracking-tight">dentalcare</div>
+        <div class="text-[9px] tracking-[2px] opacity-60 font-semibold">MANAGEMENT</div>
+      </div>
+    </div>
+
+    <div>
+      <h1 class="text-4xl font-bold leading-tight mb-4">
+        La gestion sereine<br/>de votre cabinet dentaire.
+      </h1>
+      <p class="text-white/70 text-sm leading-relaxed max-w-md">
+        Centralisez vos patients, rendez-vous, consultations, facturation et stocks
+        dans une plateforme unique.
+      </p>
+    </div>
+
+    <div class="text-xs text-white/50">© 2026 DentalCare Management · Sénégal</div>
+  </div>
+
+  <!-- Panneau droit (formulaire) -->
+  <div class="login-form-wrapper flex items-center justify-center p-6 lg:p-12">
+    <div class="w-full max-w-sm">
+
+      <div class="lg:hidden flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-primary grid place-items-center text-white">
+          <lucide-icon [img]="icons.Smile" [size]="22" />
+        </div>
+        <div class="text-lg font-bold text-ink">dentalcare</div>
+      </div>
+
+      <h2 class="text-2xl font-bold text-ink mb-1">Connexion</h2>
+      <p class="text-sm text-ink-muted mb-6">Accédez à votre espace de gestion.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+        <div class="form-field">
+          <label class="block text-xs font-semibold text-ink mb-1.5">Adresse e-mail</label>
+          <div class="relative">
+            <lucide-icon [img]="icons.Mail" [size]="16"
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none" />
+            <input type="email" formControlName="email" placeholder="vous@cabinet.sn"
+              class="dc-input pl-9" autocomplete="email" />
+          </div>
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <p class="text-xs text-danger mt-1">Adresse e-mail invalide</p>
+          }
+        </div>
+
+        <div class="form-field">
+          <label class="block text-xs font-semibold text-ink mb-1.5">Mot de passe</label>
+          <div class="relative">
+            <lucide-icon [img]="icons.Lock" [size]="16"
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none" />
+            <input [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+              placeholder="••••••••" class="dc-input pl-9 pr-9" autocomplete="current-password" />
+            <button type="button" (click)="togglePassword()"
+              class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 grid place-items-center text-ink-light hover:text-ink rounded">
+              <lucide-icon [img]="showPassword() ? icons.EyeOff : icons.Eye" [size]="15" />
+            </button>
+          </div>
+          @if (form.get('password')?.invalid && form.get('password')?.touched) {
+            <p class="text-xs text-danger mt-1">Mot de passe requis (min. 6 caractères)</p>
+          }
+        </div>
+
+        @if (error()) {
+          <div class="error-box px-3 py-2 rounded-md bg-red-50 border border-red-200 text-xs text-danger">
+            {{ error() }}
+          </div>
+        }
+
+        <div class="flex items-center justify-between text-xs">
+          <label class="flex items-center gap-2 text-ink-muted">
+            <input type="checkbox" class="rounded border-border" />
+            Se souvenir de moi
+          </label>
+          <a href="#" class="text-primary font-semibold hover:underline">Mot de passe oublié ?</a>
+        </div>
+
+        <button type="submit" [disabled]="loading()" class="submit-btn dc-btn-primary w-full h-10">
+          @if (loading()) {
+            <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            Connexion...
+          } @else {
+            Se connecter
+          }
+        </button>
+      </form>
+
+      <p class="text-[11px] text-ink-light text-center mt-6">
+        Démo : admin@dentalcare.sn / admin123
+      </p>
+    </div>
+  </div>
+</div>

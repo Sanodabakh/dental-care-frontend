@@ -1,0 +1,28 @@
+<article class="stat-card dc-card" [class.stat-card--small]="small">
+  <div class="stat-card__top">
+    @if (icon) {
+      <span class="stat-card__icon" [ngClass]="'stat-card__icon--' + color">
+        <lucide-icon [img]="icon" [size]="18" />
+      </span>
+    }
+    @if (context) {
+      <span class="stat-card__context" [class.stat-card__context--live]="contextLive">
+        @if (contextLive) {
+          <span class="stat-card__live-dot"></span>
+        }
+        {{ context }}
+      </span>
+    } @else if (trend) {
+      <span class="stat-card__trend" [class.stat-card__trend--negative]="!trendPositive">
+        {{ trend }}
+      </span>
+    }
+  </div>
+
+  <p class="stat-card__label">{{ label }}</p>
+  <div class="stat-card__value">{{ value }}</div>
+
+  @if (note) {
+    <p class="stat-card__note" [innerHTML]="note"></p>
+  }
+</article>

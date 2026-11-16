@@ -1,0 +1,99 @@
+<div class="reports">
+  <header class="page-header">
+    <div>
+      <h1>Rapports</h1>
+      <p>Statistiques et analyses d’activité</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" (click)="exportExcel()" class="dc-btn-secondary" [disabled]="!report()">
+        <svg lucideFileSpreadsheet [size]="14"></svg> CSV Excel
+      </button>
+      <button type="button" (click)="exportPdf()" class="dc-btn-primary" [disabled]="!report()">
+        <svg lucideDownload [size]="14"></svg> PDF
+      </button>
+    </div>
+  </header>
+
+  <div class="dc-card filters">
+    <div class="filter-item">
+      <label for="report-from">Du</label>
+      <input id="report-from" type="date" [ngModel]="from()" (ngModelChange)="onFrom($event)"
+        class="dc-input" />
+    </div>
+    <div class="filter-item">
+      <label for="report-to">Au</label>
+      <input id="report-to" type="date" [ngModel]="to()" (ngModelChange)="onTo($event)"
+        class="dc-input" />
+    </div>
+    <button type="button" (click)="generate()" class="dc-btn-primary">
+      <svg lucideCalendarDays [size]="14"></svg> Générer
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+  @if (loading()) {
+    <div class="dc-card loading-state"><div class="spinner"></div><p>Génération du rapport...</p></div>
+  } @else if (report(); as current) {
+    <section class="stats-grid">
+      <article class="dc-card stat-card">
+        <span class="stat-icon stat-icon--blue"><svg lucideFileText [size]="18"></svg></span>
+        <p class="stat-label">Rendez-vous</p>
+        <div class="stat-value">{{ current.totalAppointments }}</div>
+      </article>
+      <article class="dc-card stat-card">
+        <span class="stat-icon stat-icon--violet"><svg lucideFileText [size]="18"></svg></span>
+        <p class="stat-label">Consultations</p>
+        <div class="stat-value">{{ current.totalConsultations }}</div>
+      </article>
+      <article class="dc-card stat-card">
+        <span class="stat-icon stat-icon--green"><svg lucideTrendingUp [size]="18"></svg></span>
+        <p class="stat-label">Recettes encaissées</p>
+        <div class="stat-value">{{ current.totalRevenueFcfa | fcfa }}</div>
+      </article>
+      <article class="dc-card stat-card">
+        <span class="stat-icon stat-icon--red"><svg lucideTrendingDown [size]="18"></svg></span>
+        <p class="stat-label">Dépenses</p>
+        <div class="stat-value">{{ current.totalExpensesFcfa | fcfa }}</div>
+      </article>
+      <article class="dc-card stat-card">
+        <span class="stat-icon stat-icon--amber"><svg lucideAlertCircle [size]="18"></svg></span>
+        <p class="stat-label">Impayés</p>
+        <div class="stat-value">{{ current.totalUnpaidFcfa | fcfa }}</div>
+      </article>
+      <article class="dc-card stat-card stat-card--result">
+        <span class="stat-icon stat-icon--violet"><svg lucideWallet [size]="18"></svg></span>
+        <p class="stat-label">Résultat net</p>
+        <div class="stat-value" [class.text-success]="result() >= 0" [class.text-danger]="result() < 0">
+          {{ result() | fcfa }}
+        </div>
+      </article>
+    </section>
+
+    <div class="dc-card">
+      <h2 class="section-title">Actes les plus fréquents</h2>
+      @if (topTreatments().length === 0) {
+        <p class="empty-state">Aucun acte facturé sur cette période.</p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="dc-table">
+            <thead>
+              <tr><th>Code</th><th>Acte</th><th class="text-right">Nombre</th><th class="text-right">Chiffre d’affaires</th></tr>
+            </thead>
+            <tbody>
+              @for (treatment of topTreatments(); track treatment.code + treatment.name) {
+                <tr>
+                  <td><span class="code-badge">{{ treatment.code }}</span></td>
+                  <td><strong>{{ treatment.name }}</strong></td>
+                  <td class="text-right">{{ treatment.count }}</td>
+                  <td class="text-right"><strong>{{ treatment.revenueFcfa | fcfa }}</strong></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

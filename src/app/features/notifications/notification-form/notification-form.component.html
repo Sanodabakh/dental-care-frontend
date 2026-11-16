@@ -1,0 +1,95 @@
+<div class="notification-form">
+  <header class="form-header">
+    <button type="button" (click)="cancel()" class="back-btn" aria-label="Retour aux notifications">
+      <svg lucideArrowLeft [size]="16"></svg>
+    </button>
+    <div>
+      <h1>Nouvelle notification</h1>
+      <p>Préparer un SMS ou message WhatsApp (simulation)</p>
+    </div>
+  </header>
+
+  @if (sent()) {
+    <div class="dc-card success-card">
+      <div class="success-icon"><svg lucideCheck [size]="28"></svg></div>
+      <h2>Notification enregistrée</h2>
+      <p>{{ sentType() === 'CONFIRMATION' ? 'Confirmation' : 'Message' }} simulé pour le patient.</p>
+      <div class="success-actions">
+        <button type="button" (click)="reset()" class="dc-btn-primary">Nouvelle notification</button>
+        <a routerLink="/notifications" class="dc-btn-secondary">Voir la liste</a>
+      </div>
+    </div>
+  } @else {
+    <div class="dc-card">
+      <h2 class="section-title">Destinataire</h2>
+      @if (!selectedPatient()) {
+        <div class="search-row">
+          <input [ngModel]="patientNumberInput()" (ngModelChange)="patientNumberInput.set($event)"
+            (keyup.enter)="searchPatient()" placeholder="PAT-2026-0001"
+            class="dc-input font-mono uppercase" />
+          <button type="button" (click)="searchPatient()" [disabled]="searching()" class="dc-btn-primary">
+            <svg lucideSearch [size]="14"></svg>
+            {{ searching() ? 'Recherche...' : 'Rechercher' }}
+          </button>
+        </div>
+      } @else if (selectedPatient(); as patient) {
+        <div class="patient-selected">
+          <div>
+            <strong>{{ patient.firstName }} {{ patient.lastName }}</strong>
+            <p class="ref">{{ patient.patientNumber }} · {{ patient.phone || 'Téléphone non renseigné' }}</p>
+          </div>
+          <button type="button" (click)="selectedPatient.set(null); patientNumberInput.set('')"
+            class="dc-btn-secondary">Changer</button>
+        </div>
+      }
+    </div>
+
+    @if (selectedPatient()) {
+      <div class="dc-card">
+        <h2 class="section-title">Message</h2>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label" for="notification-type">Type de notification</label>
+            <select id="notification-type" [ngModel]="type()" (ngModelChange)="onTypeChange($event)"
+              class="dc-input">
+              @for (item of types; track item.value) {
+                <option [value]="item.value">{{ item.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="notification-channel">Canal</label>
+            <select id="notification-channel" [ngModel]="channel()" (ngModelChange)="onChannelChange($event)"
+              class="dc-input">
+              @for (item of channels; track item) {
+                <option [value]="item">{{ item }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-field form-field--full">
+            <label class="form-label" for="notification-message">Message</label>
+            <textarea id="notification-message" [ngModel]="message()"
+              (ngModelChange)="message.set($event)" rows="4" class="dc-input form-textarea"
+              placeholder="Contenu du message..."></textarea>
+            <p class="char-count">{{ message().length }} caractères</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="error-banner" role="alert"><svg lucideX [size]="16"></svg>{{ error() }}</div>
+    }
+
+    @if (selectedPatient()) {
+      <div class="form-actions">
+        <button type="button" (click)="cancel()" class="dc-btn-secondary">Annuler</button>
+        <button type="button" (click)="send()" [disabled]="sending()" class="dc-btn-primary">
+          @if (sending()) { <span class="spinner-sm"></span> }
+          <svg lucideSend [size]="14"></svg>
+          {{ sending() ? 'Envoi...' : 'Envoyer' }}
+        </button>
+      </div>
+    }
+  }
+</div>

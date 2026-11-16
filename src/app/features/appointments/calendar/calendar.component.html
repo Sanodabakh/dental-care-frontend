@@ -1,0 +1,185 @@
+<div class="calendar">
+
+  <!-- HEADER -->
+  <header class="calendar__header">
+    <div>
+      <h1 class="calendar__title">Rendez-vous</h1>
+      <p class="calendar__subtitle">Gérez le planning du cabinet</p>
+    </div>
+    <a routerLink="/appointments/new" class="dc-btn-primary">
+      <lucide-icon [img]="icons.Plus" [size]="16" />
+      Nouveau rendez-vous
+    </a>
+  </header>
+
+  <!-- TOOLBAR -->
+  <div class="dc-card calendar__toolbar">
+    <div class="toolbar-left">
+      <button (click)="navigate(-1)" class="nav-btn">
+        <lucide-icon [img]="icons.ChevronLeft" [size]="16" />
+      </button>
+      <button (click)="goToday()" class="dc-btn-secondary">Aujourd'hui</button>
+      <button (click)="navigate(1)" class="nav-btn">
+        <lucide-icon [img]="icons.ChevronRight" [size]="16" />
+      </button>
+      <span class="current-date">{{ currentDateLabel() }}</span>
+    </div>
+
+    <div class="view-tabs">
+      <button [class.active]="viewMode() === 'day'"   (click)="setView('day')"   class="view-tab">Jour</button>
+      <button [class.active]="viewMode() === 'week'"  (click)="setView('week')"  class="view-tab">Semaine</button>
+      <button [class.active]="viewMode() === 'month'" (click)="setView('month')" class="view-tab">Mois</button>
+      <button [class.active]="viewMode() === 'list'"  (click)="setView('list')"  class="view-tab">
+        Liste
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="dc-card loading-state">
+      <div class="spinner"></div>
+      <p>Chargement du planning...</p>
+    </div>
+  } @else {
+
+    <!-- ============ VUE JOUR ============ -->
+    @if (viewMode() === 'day') {
+      <div class="dc-card day-view">
+        @for (hour of hours; track hour) {
+          <div class="day-row">
+            <div class="hour-label">{{ hour.toString().padStart(2, '0') }}:00</div>
+            <div class="hour-slot">
+              @for (appt of appointmentsForHour(currentDate(), hour); track appt.id) {
+                <div class="appt-block" [class]="blockColorClass(appt.status)">
+                  <div class="appt-time">{{ timeOnly(appt.startTime) }} – {{ timeOnly(appt.endTime) }}</div>
+                  <div class="appt-patient">{{ appt.patientName }}</div>
+                  <div class="appt-motif">{{ appt.motif }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ============ VUE SEMAINE ============ -->
+    @if (viewMode() === 'week') {
+      <div class="dc-card week-view">
+        <div class="week-header">
+          <div class="hour-col"></div>
+          @for (day of weekDays(); track day.toISOString()) {
+            <div class="day-col-header" [class.today]="day.toDateString() === currentDate().toDateString()">
+              <span class="day-name">{{ day.toLocaleDateString('fr-FR', { weekday: 'short' }) }}</span>
+              <span class="day-number">{{ day.getDate() }}</span>
+            </div>
+          }
+        </div>
+        <div class="week-body">
+          @for (hour of hours; track hour) {
+            <div class="week-row">
+              <div class="hour-label">{{ hour.toString().padStart(2, '0') }}:00</div>
+              @for (day of weekDays(); track day.toISOString()) {
+                <div class="week-cell">
+                  @for (appt of appointmentsForHour(day, hour); track appt.id) {
+                    <div class="appt-block appt-block--compact" [class]="blockColorClass(appt.status)">
+                      <span class="appt-time">{{ timeOnly(appt.startTime) }}</span>
+                      <span class="appt-patient">{{ appt.patientName }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ============ VUE MOIS ============ -->
+    @if (viewMode() === 'month') {
+      <div class="dc-card month-view">
+        <div class="month-header">
+          @for (d of ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']; track d) {
+            <div class="month-day-name">{{ d }}</div>
+          }
+        </div>
+        <div class="month-grid">
+          @for (cell of monthGrid(); track $index) {
+            <div class="month-cell" [class.month-cell--empty]="!cell.inMonth" [class.month-cell--today]="cell.today">
+              @if (cell.date) {
+                <div class="month-cell__date">{{ cell.date.getDate() }}</div>
+                <div class="month-cell__items">
+                  @for (appt of appointmentsForDay(cell.date!); track appt.id) {
+                    <div class="month-appt" [class]="blockColorClass(appt.status)">
+                      {{ timeOnly(appt.startTime) }} · {{ appt.patientName }}
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ============ VUE LISTE ============ -->
+    @if (viewMode() === 'list') {
+      <div class="dc-card list-view">
+        @if (appointments().length === 0) {
+          <div class="empty-panel">
+            <lucide-icon [img]="icons.CalendarDays" [size]="32" class="text-ink-light" />
+            <p>Aucun rendez-vous pour cette période</p>
+          </div>
+        } @else {
+          <table class="dc-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Horaire</th>
+                <th>Patient</th>
+                <th>Motif</th>
+                <th>Statut</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (a of appointments(); track a.id) {
+                <tr>
+                  <td>{{ a.startTime | dateFr }}</td>
+                  <td>{{ timeOnly(a.startTime) }} – {{ timeOnly(a.endTime) }}</td>
+                  <td>
+                    <div class="patient-cell">
+                      <span class="avatar-sm">{{ initials(a.patientName) }}</span>
+                      <span>{{ a.patientName }}</span>
+                    </div>
+                  </td>
+                  <td>{{ a.motif }}</td>
+                  <td>
+                    <span class="dc-badge" [ngClass]="statusClass(a.status)">
+                      {{ statusLabel(a.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      @if (a.status === 'EN_ATTENTE') {
+                        <button (click)="changeStatus(a, 'CONFIRME')" class="row-btn" title="Confirmer">Confirmer</button>
+                      }
+                      @if (a.status === 'CONFIRME') {
+                        <button (click)="changeStatus(a, 'ARRIVE')" class="row-btn" title="Marquer arrivé">Arrivé</button>
+                      }
+                      @if (a.status === 'ARRIVE') {
+                        <button (click)="changeStatus(a, 'EN_CONSULTATION')" class="row-btn" title="Démarrer">Démarrer</button>
+                      }
+                      @if (a.status !== 'ANNULE' && a.status !== 'TERMINE') {
+                        <button (click)="changeStatus(a, 'ANNULE')" class="row-btn row-btn--danger" title="Annuler">Annuler</button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+  }
+</div>

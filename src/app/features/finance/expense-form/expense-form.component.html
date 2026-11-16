@@ -1,0 +1,62 @@
+<div class="expense-form">
+  <header class="form-header">
+    <button type="button" (click)="cancel()" class="back-btn" aria-label="Retour aux finances">
+      <svg lucideArrowLeft [size]="16"></svg>
+    </button>
+    <div>
+      <h1>Nouvelle dépense</h1>
+      <p>Enregistrer une sortie de trésorerie</p>
+    </div>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="dc-card">
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label">Catégorie <span class="required">*</span></label>
+        <select formControlName="category" class="dc-input">
+          <option value="">Sélectionner...</option>
+          @for (category of categories; track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Libellé <span class="required">*</span></label>
+        <input formControlName="label" class="dc-input" placeholder="Loyer Novembre..." />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Montant (FCFA) <span class="required">*</span></label>
+        <input type="number" min="1" formControlName="amountFcfa" class="dc-input" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Date <span class="required">*</span></label>
+        <input type="date" formControlName="expenseDate" class="dc-input" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Moyen de paiement</label>
+        <select formControlName="paymentMethod" class="dc-input">
+          @for (method of paymentMethods; track method) {
+            <option [value]="method">{{ method }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Référence</label>
+        <input formControlName="reference" class="dc-input" placeholder="N° facture..." />
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="error-banner" role="alert"><svg lucideX [size]="16"></svg>{{ error() }}</div>
+    }
+
+    <div class="form-actions">
+      <button type="button" (click)="cancel()" class="dc-btn-secondary">Annuler</button>
+      <button type="submit" [disabled]="saving()" class="dc-btn-primary">
+        @if (saving()) { <span class="spinner-sm"></span> }
+        <svg lucideSave [size]="14"></svg>
+        Enregistrer la dépense
+      </button>
+    </div>
+  </form>
+</div>

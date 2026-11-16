@@ -1,0 +1,78 @@
+<section class="space-y-5">
+  <header class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-ink">Paiements</h1>
+      <p class="mt-1 text-sm text-ink-light">Historique des règlements et reçus.</p>
+    </div>
+    <a routerLink="/payments/new" class="dc-btn-primary">
+      <lucide-icon [img]="icons.Plus" [size]="16" />
+      Enregistrer un paiement
+    </a>
+  </header>
+
+  <div class="dc-card p-4">
+    <div class="relative max-w-xl">
+      <lucide-icon [img]="icons.Search" [size]="16"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light" />
+      <input class="dc-input pl-9" [ngModel]="search()" (ngModelChange)="onSearch($event)"
+        placeholder="Rechercher par reçu, facture ou patient" />
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="dc-card overflow-hidden">
+    @if (loading()) {
+      <div class="p-10 text-center text-sm text-ink-light">Chargement des paiements...</div>
+    } @else if (payments().length === 0) {
+      <div class="p-12 text-center">
+        <p class="font-semibold text-ink">Aucun paiement trouvé</p>
+        <p class="mt-1 text-sm text-ink-light">Les règlements enregistrés apparaîtront ici.</p>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="dc-table">
+          <thead>
+            <tr>
+              <th>N° reçu</th>
+              <th>Patient</th>
+              <th>Facture</th>
+              <th>Date</th>
+              <th>Mode</th>
+              <th class="text-right">Montant</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (payment of payments(); track payment.id) {
+              <tr>
+                <td class="font-semibold text-primary">{{ payment.receiptNumber }}</td>
+                <td>
+                  <strong>{{ payment.patientName || payment.patientNumber }}</strong>
+                  <small class="mt-0.5 block text-ink-light">{{ payment.patientNumber }}</small>
+                </td>
+                <td>{{ payment.invoiceNumber || '—' }}</td>
+                <td>{{ payment.paymentDate | dateFr }}</td>
+                <td>{{ methodLabel(payment.paymentMethod) }}</td>
+                <td class="text-right font-semibold">{{ payment.amountFcfa | fcfa }}</td>
+                <td>
+                  @if (payment.invoiceId) {
+                    <div class="flex justify-end">
+                      <a [routerLink]="['/billing', payment.invoiceId]" class="row-btn" title="Voir la facture">
+                        <lucide-icon [img]="icons.Eye" [size]="15" />
+                      </a>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>

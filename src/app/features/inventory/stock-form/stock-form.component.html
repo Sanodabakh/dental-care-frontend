@@ -1,0 +1,66 @@
+<div class="stock-form">
+  <header class="form-header">
+    <button type="button" (click)="cancel()" class="back-btn" aria-label="Retour au stock">
+      <svg lucideArrowLeft [size]="16"></svg>
+    </button>
+    <div>
+      <h1>{{ isEdit() ? 'Modifier le produit' : 'Nouveau produit' }}</h1>
+      <p>Informations du produit et seuil d’alerte</p>
+    </div>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="dc-card">
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label">Code <span class="required">*</span></label>
+        <input formControlName="code" class="dc-input" placeholder="PRD-008" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Nom du produit <span class="required">*</span></label>
+        <input formControlName="name" class="dc-input" placeholder="Gants nitrile..." />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Catégorie <span class="required">*</span></label>
+        <select formControlName="category" class="dc-input">
+          <option value="">Sélectionner...</option>
+          @for (category of categories; track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Fournisseur</label>
+        <input formControlName="supplier" class="dc-input" placeholder="Dentapro" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Quantité en stock</label>
+        <input type="number" min="0" formControlName="quantity" class="dc-input" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Seuil d’alerte</label>
+        <input type="number" min="0" formControlName="minQuantity" class="dc-input" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Prix d’achat (FCFA)</label>
+        <input type="number" min="0" formControlName="purchasePriceFcfa" class="dc-input" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Date de péremption</label>
+        <input type="date" formControlName="expirationDate" class="dc-input" />
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="error-banner" role="alert"><svg lucideX [size]="16"></svg>{{ error() }}</div>
+    }
+
+    <div class="form-actions">
+      <button type="button" (click)="cancel()" class="dc-btn-secondary">Annuler</button>
+      <button type="submit" [disabled]="saving()" class="dc-btn-primary">
+        @if (saving()) { <span class="spinner-sm"></span> }
+        <svg lucideSave [size]="14"></svg>
+        {{ isEdit() ? 'Mettre à jour' : 'Créer le produit' }}
+      </button>
+    </div>
+  </form>
+</div>

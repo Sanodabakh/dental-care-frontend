@@ -1,0 +1,110 @@
+<div class="settings">
+  <header class="page-header">
+    <div>
+      <h1>Paramètres</h1>
+      <p>Configuration du cabinet et du compte</p>
+    </div>
+  </header>
+
+  <nav class="tabs-nav" aria-label="Sections des paramètres">
+    <button type="button" [class.active]="activeTab() === 'clinic'"
+      (click)="setTab('clinic')" class="tab-btn">
+      <svg lucideBuilding2 [size]="15"></svg> Cabinet
+    </button>
+    <button type="button" [class.active]="activeTab() === 'user'"
+      (click)="setTab('user')" class="tab-btn">
+      <svg lucideUser [size]="15"></svg> Mon compte
+    </button>
+    <button type="button" [class.active]="activeTab() === 'security'"
+      (click)="setTab('security')" class="tab-btn">
+      <svg lucideShield [size]="15"></svg> Sécurité
+    </button>
+  </nav>
+
+  @if (saved()) {
+    <div class="saved-banner" role="status">
+      <svg lucideCheck [size]="16"></svg>
+      Modifications enregistrées sur cet appareil
+    </div>
+  }
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+
+  <div class="dc-card">
+    @if (activeTab() === 'clinic') {
+      <h2 class="section-title">Informations du cabinet</h2>
+      <div class="form-grid">
+        <div class="form-field form-field--full">
+          <label class="form-label" for="clinic-name">Nom du cabinet</label>
+          <input id="clinic-name" [ngModel]="clinicName()" (ngModelChange)="clinicName.set($event)" class="dc-input" />
+        </div>
+        <div class="form-field form-field--full">
+          <label class="form-label" for="clinic-address">Adresse</label>
+          <input id="clinic-address" [ngModel]="clinicAddress()" (ngModelChange)="clinicAddress.set($event)" class="dc-input" />
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="clinic-phone">Téléphone</label>
+          <input id="clinic-phone" type="tel" [ngModel]="clinicPhone()" (ngModelChange)="clinicPhone.set($event)" class="dc-input" />
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="clinic-email">Email</label>
+          <input id="clinic-email" type="email" [ngModel]="clinicEmail()" (ngModelChange)="clinicEmail.set($event)" class="dc-input" />
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'user') {
+      <h2 class="section-title">Coordonnées du compte</h2>
+      <p class="settings-note">Ces préférences sont enregistrées localement et ne modifient pas les identifiants de connexion.</p>
+      <div class="form-grid">
+        <div class="form-field form-field--full">
+          <label class="form-label" for="account-name">Nom complet</label>
+          <input id="account-name" [ngModel]="fullName()" (ngModelChange)="fullName.set($event)" class="dc-input" />
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="account-email">Email</label>
+          <input id="account-email" type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" class="dc-input" />
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="account-phone">Téléphone</label>
+          <input id="account-phone" type="tel" [ngModel]="phone()" (ngModelChange)="phone.set($event)" class="dc-input" />
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'security') {
+      <h2 class="section-title">Sécurité du compte</h2>
+      <div class="security-note">
+        La modification du mot de passe n’est pas activée : elle nécessite une API d’authentification sécurisée.
+        Aucun mot de passe ne sera enregistré dans le navigateur.
+      </div>
+      <div class="form-grid">
+        <div class="form-field form-field--full">
+          <label class="form-label" for="current-password">Mot de passe actuel</label>
+          <input id="current-password" type="password" autocomplete="current-password"
+            [ngModel]="currentPassword()" (ngModelChange)="currentPassword.set($event)" class="dc-input" disabled />
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="new-password">Nouveau mot de passe</label>
+          <input id="new-password" type="password" autocomplete="new-password"
+            [ngModel]="newPassword()" (ngModelChange)="newPassword.set($event)" class="dc-input" disabled />
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="confirm-password">Confirmer</label>
+          <input id="confirm-password" type="password" autocomplete="new-password"
+            [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)" class="dc-input" disabled />
+        </div>
+      </div>
+    }
+
+    <div class="form-actions">
+      @if (activeTab() !== 'security') {
+        <button type="button" (click)="save()" class="dc-btn-primary">
+          <svg lucideSave [size]="14"></svg>
+          Enregistrer
+        </button>
+      }
+    </div>
+  </div>
+</div>

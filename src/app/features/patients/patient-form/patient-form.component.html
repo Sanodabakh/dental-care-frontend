@@ -1,0 +1,146 @@
+<div class="patient-form">
+
+  <!-- HEADER -->
+  <header class="patient-form__header">
+    <button (click)="cancel()" class="back-btn">
+      <lucide-icon [img]="icons.ArrowLeft" [size]="16" />
+    </button>
+    <div>
+      <h1 class="patient-form__title">
+        {{ isEdit() ? 'Modifier le patient' : 'Nouveau patient' }}
+      </h1>
+      <p class="patient-form__subtitle">
+        @if (isEdit() && patient()) {
+          {{ patient()!.patientNumber }} · {{ patient()!.firstName }} {{ patient()!.lastName }}
+        } @else {
+          Le numéro de référence sera généré automatiquement
+        }
+      </p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="dc-card loading-state">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="patient-form__body">
+
+      <!-- SECTION : Identité -->
+      <section class="dc-card form-section">
+        <h2 class="form-section__title">
+          <lucide-icon [img]="icons.UserPlus" [size]="16" class="text-primary" />
+          Identité du patient
+        </h2>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Prénom <span class="required">*</span></label>
+            <input formControlName="firstName" class="dc-input" placeholder="Aminata" />
+            @if (fieldError('firstName'); as err) {
+              <p class="form-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Nom <span class="required">*</span></label>
+            <input formControlName="lastName" class="dc-input" placeholder="Diallo" />
+            @if (fieldError('lastName'); as err) {
+              <p class="form-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Date de naissance</label>
+            <input type="date" formControlName="birthDate" class="dc-input" />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Sexe</label>
+            <select formControlName="gender" class="dc-input">
+              <option value="">Non renseigné</option>
+              <option value="M">Homme</option>
+              <option value="F">Femme</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION : Coordonnées -->
+      <section class="dc-card form-section">
+        <h2 class="form-section__title">Coordonnées</h2>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Téléphone principal</label>
+            <input formControlName="phone" class="dc-input" placeholder="77 123 45 67" />
+            @if (fieldError('phone'); as err) {
+              <p class="form-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Téléphone secondaire</label>
+            <input formControlName="secondaryPhone" class="dc-input" placeholder="76 234 56 78" />
+          </div>
+
+          <div class="form-field form-field--full">
+            <label class="form-label">Adresse e-mail</label>
+            <input type="email" formControlName="email" class="dc-input" placeholder="patient@email.sn" />
+            @if (fieldError('email'); as err) {
+              <p class="form-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="form-field form-field--full">
+            <label class="form-label">Adresse postale</label>
+            <textarea formControlName="address" class="dc-input form-textarea" rows="2"
+              placeholder="Sacré-Cœur 3, Dakar"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION : Contact d'urgence -->
+      <section class="dc-card form-section">
+        <h2 class="form-section__title">Contact d'urgence</h2>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Nom du contact</label>
+            <input formControlName="emergencyContact" class="dc-input"
+              placeholder="Moussa Diallo (frère)" />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Téléphone</label>
+            <input formControlName="emergencyPhone" class="dc-input" placeholder="77 987 65 43" />
+          </div>
+        </div>
+      </section>
+
+      @if (error()) {
+        <div class="error-banner">
+          <lucide-icon [img]="icons.X" [size]="16" />
+          {{ error() }}
+        </div>
+      }
+
+      <!-- ACTIONS -->
+      <div class="form-actions">
+        <button type="button" (click)="cancel()" class="dc-btn-secondary">
+          Annuler
+        </button>
+        <button type="submit" [disabled]="saving() || form.invalid" class="dc-btn-primary">
+          @if (saving()) {
+            <span class="spinner-sm"></span>
+            Enregistrement...
+          } @else {
+            <lucide-icon [img]="icons.Save" [size]="15" />
+            {{ isEdit() ? 'Mettre à jour' : 'Créer le patient' }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

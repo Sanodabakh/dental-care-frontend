@@ -1,0 +1,23 @@
+.shell-root { min-height: 100vh; }
+.shell-content {
+  width: calc(100% - 15rem);
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: 15rem;
+  flex: 0 0 auto;
+  transition: width 0.22s ease, margin-left 0.22s ease;
+}
+.shell-content.sidebar-collapsed {
+  width: calc(100% - 5rem);
+  margin-left: 5rem;
+}
+.shell-content > main {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  animation: contentFade 0.25s ease;
+}
+@keyframes contentFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

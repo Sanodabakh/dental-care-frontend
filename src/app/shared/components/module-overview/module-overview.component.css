@@ -1,0 +1,140 @@
+.module-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: module-fade-in 0.25s ease;
+}
+
+.module-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.module-page__eyebrow {
+  margin: 0 0 5px;
+  color: #1769aa;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+}
+
+.module-page__header h1 {
+  margin: 0;
+  color: #21374d;
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+}
+
+.module-page__subtitle {
+  margin: 5px 0 0;
+  color: #8996a5;
+  font-size: 12px;
+}
+
+.module-page__status {
+  padding: 6px 10px;
+  border: 1px solid #d5e9f8;
+  border-radius: 999px;
+  background: #eff8ff;
+  color: #1769aa;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.module-page__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 22px;
+}
+
+.module-page__panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.module-page__symbol {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: #eaf4fb;
+  color: #1769aa;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.module-page__panel-heading h2,
+.module-page__next h3 {
+  margin: 0;
+  color: #2c4055;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.module-page__panel-heading p {
+  margin: 4px 0 0;
+  color: #8996a5;
+  font-size: 11px;
+}
+
+.module-page__empty {
+  padding: 30px 18px;
+  border: 1px dashed #dce5ed;
+  border-radius: 10px;
+  background: #fbfcfe;
+  text-align: center;
+}
+
+.module-page__empty h3 {
+  margin: 0;
+  color: #2c4055;
+  font-size: 14px;
+}
+
+.module-page__empty p {
+  max-width: 470px;
+  margin: 8px auto 0;
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.module-page__next {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.4fr) 1fr;
+  align-items: start;
+  gap: 16px;
+}
+
+.module-page__next ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  color: #5a6b7e;
+  font-size: 12px;
+  list-style: none;
+}
+
+.module-page__next li::before {
+  margin-right: 8px;
+  color: #17a6a1;
+  content: "•";
+}
+
+@keyframes module-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .module-page__panel { padding: 16px; }
+  .module-page__next { grid-template-columns: 1fr; gap: 10px; }
+}

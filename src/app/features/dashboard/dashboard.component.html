@@ -1,0 +1,153 @@
+<div class="dashboard">
+  <header class="dashboard__header">
+    <div>
+      <p class="dashboard__eyebrow"><span></span>Votre espace de travail</p>
+      <h1 class="dashboard__title">Bonjour, Dr. Omar Fall <span aria-hidden="true">✳</span></h1>
+      <p class="dashboard__subtitle">Votre cabinet, organisé à votre rythme.</p>
+    </div>
+    <a class="dc-btn-primary dashboard__action" routerLink="/appointments">
+      <lucide-icon [img]="icons.Plus" [size]="16" />
+      Nouveau rendez-vous
+    </a>
+  </header>
+
+  @if (loading()) {
+    <section class="stats-grid" aria-label="Chargement des statistiques">
+      @for (card of [1, 2, 3, 4]; track card) {
+        <div class="stat-skeleton"></div>
+      }
+    </section>
+  } @else if (stats(); as summary) {
+    <section class="stats-grid" aria-label="Indicateurs clés">
+      <app-stat-card
+        label="Patients suivis"
+        [value]="summary.totalPatients.toString()"
+        note="Enregistrés dans votre espace privé"
+        context="Données du cabinet"
+        [icon]="icons.Users"
+        color="blue" />
+      <app-stat-card
+        label="Rendez-vous du jour"
+        [value]="summary.todayAppointments.toString()"
+        note="Agenda réel du cabinet"
+        context="Aujourd'hui"
+        [contextLive]="true"
+        [icon]="icons.CalendarDays"
+        color="teal" />
+      <app-stat-card
+        label="Consultations"
+        [value]="summary.todayConsultations.toString()"
+        note="Dossiers cliniques enregistrés"
+        context="Activité"
+        [icon]="icons.Stethoscope"
+        color="violet" />
+      <app-stat-card
+        label="Paiements reçus"
+        [value]="(summary.todayRevenueFcfa | fcfa)"
+        note="Encaissements enregistrés"
+        context="Aujourd'hui"
+        [icon]="icons.Wallet"
+        color="amber" />
+    </section>
+  }
+
+  <section class="charts-grid" aria-label="Activité du cabinet">
+    <article class="dc-card chart-card">
+      <header class="chart-card__header">
+        <div>
+          <h2 class="chart-card__title">Évolution des encaissements</h2>
+          <p class="chart-card__subtitle">Montants reçus · 6 derniers mois</p>
+        </div>
+        <span class="chart-card__badge">FCFA</span>
+      </header>
+      <div class="chart-card__body">
+        <canvas baseChart [data]="revenueChartData" [options]="barChartOptions" type="bar"></canvas>
+      </div>
+    </article>
+
+    <article class="dc-card chart-card">
+      <header class="chart-card__header">
+        <div>
+          <h2 class="chart-card__title">Activité des rendez-vous</h2>
+          <p class="chart-card__subtitle">Volume mensuel · 6 derniers mois</p>
+        </div>
+        <span class="chart-card__badge">RDV</span>
+      </header>
+      <div class="chart-card__body">
+        <canvas baseChart [data]="appointmentChartData" [options]="barChartOptions" type="bar"></canvas>
+      </div>
+      <footer class="chart-card__footer" aria-label="Répartition des rendez-vous du jour">
+        <span>Statuts</span>
+        <span><i class="status-dot status-dot--done"></i>Terminés <b>{{ appointmentStatusCounts().completed }}</b></span>
+        <span><i class="status-dot status-dot--confirmed"></i>Confirmés <b>{{ appointmentStatusCounts().confirmed }}</b></span>
+        <span><i class="status-dot status-dot--planned"></i>Planifiés <b>{{ appointmentStatusCounts().planned }}</b></span>
+      </footer>
+    </article>
+  </section>
+
+  <section class="bottom-grid">
+    <article class="dc-card bottom-card">
+      <header class="section-card__header">
+        <div>
+          <h2 class="section-card__title">Agenda du jour</h2>
+          <p class="section-card__subtitle">Rendez-vous enregistrés {{ todayLabel() }}</p>
+        </div>
+        <a routerLink="/appointments" class="section-card__link">
+          Gérer l'agenda <lucide-icon [img]="icons.ArrowRight" [size]="14" />
+        </a>
+      </header>
+
+      @if (appointments().length) {
+        <div class="agenda-list">
+          @for (appointment of appointments(); track appointment.id) {
+            <div class="agenda-item">
+              <time class="agenda-time">{{ appointment.startTime }}</time>
+              <span class="agenda-avatar">{{ initials(appointment.patientName) }}</span>
+              <div class="agenda-details">
+                <strong>{{ appointment.patientName }}</strong>
+                <span>{{ appointment.motif }}</span>
+              </div>
+              <span class="dc-badge" [ngClass]="statusClass(appointment.status)">
+                {{ statusLabel(appointment.status) }}
+              </span>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty-message">Aucun rendez-vous prévu pour aujourd'hui.</p>
+      }
+    </article>
+
+    <article class="dc-card bottom-card quick-access">
+      <header class="section-card__header">
+        <div>
+          <h2 class="section-card__title">Accès rapide</h2>
+          <p class="section-card__subtitle">Les outils essentiels du cabinet</p>
+        </div>
+      </header>
+      <nav class="quick-links" aria-label="Accès rapide">
+        <a routerLink="/patients/new" class="quick-link">
+          <span class="quick-link__icon quick-link__icon--blue">
+            <lucide-icon [img]="icons.Users" [size]="17" />
+          </span>
+          <span><strong>Ajouter un patient</strong><small>Créer un dossier patient</small></span>
+          <lucide-icon class="quick-link__arrow" [img]="icons.ArrowRight" [size]="15" />
+        </a>
+        <a routerLink="/consultations" class="quick-link">
+          <span class="quick-link__icon quick-link__icon--violet">
+            <lucide-icon [img]="icons.Stethoscope" [size]="17" />
+          </span>
+          <span><strong>Nouvelle consultation</strong><small>Documenter une visite</small></span>
+          <lucide-icon class="quick-link__arrow" [img]="icons.ArrowRight" [size]="15" />
+        </a>
+        <a routerLink="/appointments" class="quick-link">
+          <span class="quick-link__icon quick-link__icon--teal">
+            <lucide-icon [img]="icons.CalendarDays" [size]="17" />
+          </span>
+          <span><strong>Planifier un rendez-vous</strong><small>Organiser le planning</small></span>
+          <lucide-icon class="quick-link__arrow" [img]="icons.ArrowRight" [size]="15" />
+        </a>
+      </nav>
+    </article>
+  </section>
+</div>

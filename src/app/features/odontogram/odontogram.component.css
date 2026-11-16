@@ -1,0 +1,335 @@
+.odontogram {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.odontogram__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.odontogram__eyebrow {
+  margin: 0 0 5px;
+  color: #1769aa;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+}
+
+.odontogram__title {
+  margin: 0;
+  color: #21374d;
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+}
+
+.odontogram__subtitle {
+  margin: 5px 0 0;
+  color: #8996a5;
+  font-size: 12px;
+}
+
+.patient-picker { display: flex; width: min(420px, 100%); flex-direction: column; gap: 6px; }
+.patient-search { display: flex; gap: 8px; }
+.patient-search input { min-width: 0; flex: 1; text-transform: uppercase; }
+.patient-search button { flex: 0 0 auto; }
+
+.patient-picker label,
+.form-label {
+  color: #5a6b7e;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.odontogram-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.odontogram-card__heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.odontogram-card__heading h2,
+.detail-card__header h2 {
+  margin: 0;
+  color: #21374d;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.odontogram-card__heading p,
+.detail-card__header p {
+  margin: 5px 0 0;
+  color: #8996a5;
+  font-size: 10px;
+}
+
+.saved-label {
+  color: #168a79;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.arch-label {
+  margin: 2px 0 0;
+  color: #8996a5;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.arch {
+  display: flex;
+  min-width: 860px;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0;
+}
+
+.odontogram-card { overflow-x: auto; }
+
+.tooth {
+  display: flex;
+  width: 49px;
+  height: 64px;
+  flex: 0 0 49px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1px;
+  padding: 5px 3px 3px;
+  border: 1px solid #dce5eb;
+  border-radius: 9px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.tooth svg {
+  display: block;
+  width: 29px;
+  height: 34px;
+}
+
+.tooth svg path {
+  stroke: #b6c4ca;
+  stroke-width: 1.6px;
+}
+
+.tooth span {
+  color: #647789;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.tooth:hover {
+  border-color: #8eb6d2;
+  box-shadow: 0 2px 7px rgb(23 105 170 / 12%);
+  transform: translateY(-1px);
+}
+
+.tooth--selected {
+  border-color: #1769aa;
+  background: #eff8ff;
+  box-shadow: 0 0 0 2px rgb(23 105 170 / 15%);
+}
+
+.arch-midline {
+  width: 1px;
+  height: 42px;
+  flex: 0 0 1px;
+  margin: 0 3px;
+  background: #e5ebef;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #718096;
+  font-size: 9px;
+}
+
+.legend-dot,
+.history-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 14px;
+}
+
+.detail-card {
+  display: flex;
+  min-width: 0;
+  min-height: 270px;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+
+.detail-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.history-count,
+.tooth-chip {
+  color: #728197;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.tooth-chip {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eaf4fb;
+  color: #1769aa;
+  font-weight: 650;
+}
+
+.history-hint {
+  margin: 8px 0 0;
+  color: #8996a5;
+  font-size: 10px;
+  text-align: center;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: auto;
+}
+
+.history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.history-item:last-child { border-bottom: 0; }
+.history-dot { margin-top: 4px; }
+.history-content { min-width: 0; flex: 1; }
+.history-content strong { color: #35485d; font-size: 10px; font-weight: 600; }
+.history-content p { margin: 3px 0; color: #718096; font-size: 10px; }
+.history-content span { display: block; margin-top: 3px; color: #9aa6b4; font-size: 9px; }
+
+.empty-state {
+  display: grid;
+  min-height: 150px;
+  place-content: center;
+  margin: auto 0;
+  color: #8996a5;
+  font-size: 11px;
+  text-align: center;
+}
+
+.observation-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+
+.form-textarea {
+  width: 100%;
+  min-height: 84px;
+  padding: 9px 11px;
+  border: 1px solid #e8edf3;
+  border-radius: 6px;
+  color: #2c4055;
+  font: inherit;
+  font-size: 11px;
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  border-color: #1769aa;
+  outline: 2px solid rgb(23 105 170 / 15%);
+}
+
+.save-button { align-self: flex-start; margin-top: auto; }
+.save-button:disabled { cursor: wait; opacity: 0.7; }
+.error-banner,
+.error-message { color: #dc2626; font-size: 11px; }
+.error-banner { padding: 10px 12px; border: 1px solid #fecaca; border-radius: 7px; background: #fef2f2; }
+.error-message { margin: 0; }
+
+.select-hint,
+.loading-state {
+  display: flex;
+  min-height: 170px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.select-hint h2,
+.loading-state p { margin: 0; color: #405166; font-size: 13px; font-weight: 600; }
+.select-hint p { margin: 0; color: #8996a5; font-size: 11px; }
+.loading-state p { color: #8996a5; font-weight: 400; }
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid #e8edf3;
+  border-top-color: #1769aa;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .odontogram__header { align-items: flex-start; flex-direction: column; }
+  .patient-picker { width: 100%; }
+  .details-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .patient-search { flex-direction: column; }
+  .patient-search button { justify-content: center; }
+}

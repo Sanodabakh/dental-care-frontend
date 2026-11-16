@@ -1,0 +1,152 @@
+<div class="patient-list">
+
+  <!-- HEADER -->
+  <header class="patient-list__header">
+    <div>
+      <h1 class="patient-list__title">Patients</h1>
+      <p class="patient-list__subtitle">
+        {{ total() }} patient{{ total() > 1 ? 's' : '' }} enregistré{{ total() > 1 ? 's' : '' }}
+      </p>
+    </div>
+    <a routerLink="/patients/new" class="dc-btn-primary">
+      <lucide-icon [img]="icons.Plus" [size]="16" />
+      Nouveau patient
+    </a>
+  </header>
+
+  <!-- FILTRES -->
+  <div class="dc-card patient-list__filters">
+    <div class="filter-search">
+      <lucide-icon [img]="icons.Search" [size]="16"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none" />
+      <input
+        [ngModel]="search()"
+        (ngModelChange)="onSearch($event)"
+        placeholder="Rechercher par nom, numéro ou téléphone..."
+        class="dc-input pl-9" />
+    </div>
+
+    <div class="filter-status">
+      <lucide-icon [img]="icons.Filter" [size]="14" class="text-ink-light" />
+      <select
+        [ngModel]="status()"
+        (ngModelChange)="onStatus($event)"
+        class="dc-input">
+        <option value="ALL">Tous les statuts</option>
+        <option value="ACTIF">Actifs</option>
+        <option value="ARCHIVE">Archivés</option>
+      </select>
+    </div>
+
+    <button class="dc-btn-secondary">
+      <lucide-icon [img]="icons.Download" [size]="14" />
+      Exporter
+    </button>
+  </div>
+
+  <!-- TABLEAU -->
+  <div class="dc-card patient-list__table-card">
+
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des patients...</p>
+      </div>
+    } @else if (patients().length === 0) {
+      <div class="empty-state">
+        <p class="empty-state__title">Aucun patient trouvé</p>
+        <p class="empty-state__hint">Essayez de modifier votre recherche ou créez un nouveau patient.</p>
+        <a routerLink="/patients/new" class="dc-btn-primary">
+          <lucide-icon [img]="icons.Plus" [size]="16" />
+          Créer un patient
+        </a>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table class="dc-table">
+          <thead>
+            <tr>
+              <th>N° référence</th>
+              <th>Patient</th>
+              <th>Téléphone</th>
+              <th>Sexe</th>
+              <th>Inscription</th>
+              <th>Dernière visite</th>
+              <th>Statut</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of patients(); track p.id) {
+              <tr class="table-row">
+                <td>
+                  <span class="ref-number">{{ p.patientNumber }}</span>
+                </td>
+                <td>
+                  <a [routerLink]="['/patients', p.id]" class="patient-cell">
+                    <span class="patient-avatar">{{ initials(p) }}</span>
+                    <span>
+                      <strong>{{ fullName(p) }}</strong>
+                      @if (p.email) {
+                        <small>{{ p.email }}</small>
+                      }
+                    </span>
+                  </a>
+                </td>
+                <td>{{ p.phone || '—' }}</td>
+                <td>
+                  @if (p.gender === 'M') { <span>Homme</span> }
+                  @else if (p.gender === 'F') { <span>Femme</span> }
+                  @else { <span>—</span> }
+                </td>
+                <td>{{ p.createdAt | dateFr }}</td>
+                <td>{{ p.lastConsultation ? (p.lastConsultation | dateFr) : '—' }}</td>
+                <td>
+                  @if (p.status === 'ACTIF') {
+                    <span class="dc-badge dc-badge-success">Actif</span>
+                  } @else {
+                    <span class="dc-badge dc-badge-warning">Archivé</span>
+                  }
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <a [routerLink]="['/patients', p.id]" class="row-btn" title="Voir">
+                      <lucide-icon [img]="icons.Eye" [size]="14" />
+                    </a>
+                    <a [routerLink]="['/patients', p.id, 'edit']" class="row-btn" title="Modifier">
+                      <lucide-icon [img]="icons.Edit" [size]="14" />
+                    </a>
+                    @if (p.status === 'ACTIF') {
+                      <button (click)="archive(p)" class="row-btn row-btn--danger" title="Archiver">
+                        <lucide-icon [img]="icons.Archive" [size]="14" />
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PAGINATION -->
+      <div class="pagination">
+        <p class="pagination__info">
+          Affichage de <strong>{{ pageStart() }}</strong> à <strong>{{ pageEnd() }}</strong>
+          sur <strong>{{ total() }}</strong>
+        </p>
+        <div class="pagination__controls">
+          <button (click)="prevPage()" [disabled]="page() === 0"
+            class="dc-btn-secondary !h-8 !px-2">
+            <lucide-icon [img]="icons.ChevronLeft" [size]="14" />
+          </button>
+          <span class="pagination__page">{{ page() + 1 }} / {{ totalPages() }}</span>
+          <button (click)="nextPage()" [disabled]="page() >= totalPages() - 1"
+            class="dc-btn-secondary !h-8 !px-2">
+            <lucide-icon [img]="icons.ChevronRight" [size]="14" />
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

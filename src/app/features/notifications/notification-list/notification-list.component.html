@@ -1,0 +1,71 @@
+<div class="notification-list">
+  <header class="page-header">
+    <div>
+      <h1>Notifications</h1>
+      <p>Historique des SMS et messages WhatsApp simulés</p>
+    </div>
+    <a routerLink="/notifications/new" class="dc-btn-primary">
+      <svg lucidePlus [size]="16"></svg> Nouvelle notification
+    </a>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+  @if (loading()) {
+    <div class="dc-card loading-state"><div class="spinner"></div><p>Chargement...</p></div>
+  } @else if (notifications().length === 0) {
+    <div class="dc-card empty-state">
+      <svg lucideMessageSquare [size]="32" class="text-ink-light"></svg>
+      <p>Aucune notification enregistrée</p>
+    </div>
+  } @else {
+    <div class="dc-card overflow-x-auto">
+      <table class="dc-table">
+        <thead>
+          <tr>
+            <th>Date</th><th>Patient</th><th>Type</th><th>Canal</th>
+            <th>Message</th><th>Statut</th><th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (notification of notifications(); track notification.id) {
+            <tr>
+              <td class="date-cell">{{ notification.createdAt | dateFr }}</td>
+              <td>
+                <strong>{{ notification.patientName }}</strong>
+                <small class="patient-ref">{{ notification.patientNumber }}</small>
+              </td>
+              <td><span class="type-badge">{{ typeLabel(notification.type) }}</span></td>
+              <td>
+                <span class="channel-badge"
+                  [class.channel-badge--sms]="notification.channel === 'SMS'"
+                  [class.channel-badge--whatsapp]="notification.channel === 'WHATSAPP'">
+                  {{ notification.channel }}
+                </span>
+              </td>
+              <td class="message-cell" [title]="notification.message">{{ notification.message }}</td>
+              <td>
+                <span class="dc-badge" [ngClass]="statusClass(notification.status)">
+                  {{ statusLabel(notification.status) }}
+                </span>
+                @if (notification.errorMessage) {
+                  <small class="error-detail">{{ notification.errorMessage }}</small>
+                }
+              </td>
+              <td>
+                <div class="row-actions">
+                  @if (notification.status === 'ECHEC') {
+                    <button type="button" (click)="retry(notification)" class="row-btn" title="Réessayer">
+                      <svg lucideRefreshCw [size]="14"></svg>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

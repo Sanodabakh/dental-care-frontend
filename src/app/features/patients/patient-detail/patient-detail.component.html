@@ -1,0 +1,257 @@
+<div class="patient-detail">
+
+  @if (loading()) {
+    <div class="dc-card loading-state">
+      <div class="spinner"></div>
+      <p>Chargement du dossier patient...</p>
+    </div>
+  } @else if (patient(); as p) {
+
+    <!-- HEADER -->
+    <header class="patient-detail__header">
+      <button routerLink="/patients" class="back-btn">
+        <lucide-icon [img]="icons.ArrowLeft" [size]="16" />
+      </button>
+
+      <div class="header-card dc-card">
+        <div class="header-profile">
+          <div class="avatar-large">{{ initials(p) }}</div>
+          <div class="header-info">
+            <div class="header-info__top">
+              <h1>{{ fullName(p) }}</h1>
+              @if (p.status === 'ACTIF') {
+                <span class="dc-badge dc-badge-success">Actif</span>
+              } @else {
+                <span class="dc-badge dc-badge-warning">Archivé</span>
+              }
+            </div>
+            <p class="header-info__ref">{{ p.patientNumber }}</p>
+            <div class="header-info__meta">
+              @if (age(p) !== null) {
+                <span>{{ age(p) }} ans</span>
+              }
+              @if (p.gender) {
+                <span>· {{ p.gender === 'M' ? 'Homme' : 'Femme' }}</span>
+              }
+              <span>· Inscrit le {{ p.createdAt | dateFr }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <a [routerLink]="['/patients', p.id, 'edit']" class="dc-btn-secondary">
+            <lucide-icon [img]="icons.Edit" [size]="14" />
+            Modifier
+          </a>
+          @if (p.status === 'ACTIF') {
+            <button (click)="archive()" class="dc-btn-secondary">
+              <lucide-icon [img]="icons.Archive" [size]="14" />
+              Archiver
+            </button>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <nav class="tabs-nav">
+      @for (tab of tabs; track tab.id) {
+        <button
+          [class.active]="activeTab() === tab.id"
+          (click)="setTab(tab.id)"
+          class="tab-btn">
+          <lucide-icon [img]="tab.icon" [size]="15" />
+          {{ tab.label }}
+        </button>
+      }
+    </nav>
+
+    <!-- CONTENU DES ONGLETS -->
+    <div class="tab-content dc-card">
+
+      <!-- ONGLET 1 : INFORMATIONS -->
+      @if (activeTab() === 'info') {
+        <div class="tab-panel">
+          <h2 class="tab-panel__title">Informations personnelles</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Nom complet</span>
+              <span class="info-value">{{ fullName(p) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">N° de référence</span>
+              <span class="info-value info-value--ref">{{ p.patientNumber }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Date de naissance</span>
+              <span class="info-value">{{ p.birthDate ? (p.birthDate | dateFr) : '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Sexe</span>
+              <span class="info-value">{{ p.gender === 'M' ? 'Homme' : (p.gender === 'F' ? 'Femme' : '—') }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <lucide-icon [img]="icons.Phone" [size]="12" /> Téléphone
+              </span>
+              <span class="info-value">{{ p.phone || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Téléphone secondaire</span>
+              <span class="info-value">{{ p.secondaryPhone || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <lucide-icon [img]="icons.Mail" [size]="12" /> E-mail
+              </span>
+              <span class="info-value">{{ p.email || '—' }}</span>
+            </div>
+            <div class="info-item info-item--full">
+              <span class="info-label">
+                <lucide-icon [img]="icons.MapPin" [size]="12" /> Adresse
+              </span>
+              <span class="info-value">{{ p.address || '—' }}</span>
+            </div>
+          </div>
+
+          <h2 class="tab-panel__title mt-6">Contact d'urgence</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Nom</span>
+              <span class="info-value">{{ p.emergencyContact || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Téléphone</span>
+              <span class="info-value">{{ p.emergencyPhone || '—' }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ONGLET 2 : DOSSIER MÉDICAL -->
+      @if (activeTab() === 'medical') {
+        <div class="tab-panel">
+          <h2 class="tab-panel__title">Dossier médical</h2>
+
+          <div class="medical-grid">
+            <div class="medical-card medical-card--danger">
+              <div class="medical-card__header">
+                <lucide-icon [img]="icons.AlertTriangle" [size]="16" />
+                <h3>Allergies</h3>
+              </div>
+              <p>Aucune allergie déclarée</p>
+            </div>
+
+            <div class="medical-card medical-card--warning">
+              <div class="medical-card__header">
+                <lucide-icon [img]="icons.Heart" [size]="16" />
+                <h3>Maladies chroniques</h3>
+              </div>
+              <p>Aucune maladie chronique déclarée</p>
+            </div>
+
+            <div class="medical-card medical-card--info">
+              <div class="medical-card__header">
+                <lucide-icon [img]="icons.Pill" [size]="16" />
+                <h3>Traitements en cours</h3>
+              </div>
+              <p>Aucun traitement médicamenteux</p>
+            </div>
+
+            <div class="medical-card">
+              <div class="medical-card__header">
+                <lucide-icon [img]="icons.FileText" [size]="16" />
+                <h3>Antécédents dentaires</h3>
+              </div>
+              <p>Aucun antécédent renseigné</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ONGLET 3 : CONSULTATIONS -->
+      @if (activeTab() === 'consultations') {
+        <div class="tab-panel">
+          <div class="tab-panel__header">
+            <h2 class="tab-panel__title">Historique des consultations</h2>
+            <a [routerLink]="['/consultations/new']" [queryParams]="{ patientId: p.id }"
+               class="dc-btn-primary">
+              <lucide-icon [img]="icons.Plus" [size]="14" />
+              Nouvelle consultation
+            </a>
+          </div>
+          <div class="empty-panel">
+            <lucide-icon [img]="icons.Stethoscope" [size]="32" class="text-ink-light" />
+            <p>Aucune consultation enregistrée</p>
+          </div>
+        </div>
+      }
+
+      <!-- ONGLET 4 : ODONTOGRAMME -->
+      @if (activeTab() === 'odontogram') {
+        <div class="tab-panel">
+          <h2 class="tab-panel__title">Odontogramme</h2>
+          <div class="empty-panel">
+            <lucide-icon [img]="icons.Smile" [size]="32" class="text-ink-light" />
+            <p>Aucun odontogramme enregistré</p>
+            <a [routerLink]="['/odontograms', p.id]" class="dc-btn-primary mt-3">
+              <lucide-icon [img]="icons.Plus" [size]="14" />
+              Créer un odontogramme
+            </a>
+          </div>
+        </div>
+      }
+
+      <!-- ONGLET 5 : RENDEZ-VOUS -->
+      @if (activeTab() === 'appointments') {
+        <div class="tab-panel">
+          <div class="tab-panel__header">
+            <h2 class="tab-panel__title">Rendez-vous</h2>
+            <a [routerLink]="['/appointments/new']" [queryParams]="{ patientId: p.id }"
+               class="dc-btn-primary">
+              <lucide-icon [img]="icons.Plus" [size]="14" />
+              Nouveau rendez-vous
+            </a>
+          </div>
+          <div class="empty-panel">
+            <lucide-icon [img]="icons.CalendarDays" [size]="32" class="text-ink-light" />
+            <p>Aucun rendez-vous planifié</p>
+          </div>
+        </div>
+      }
+
+      <!-- ONGLET 6 : FACTURES -->
+      @if (activeTab() === 'invoices') {
+        <div class="tab-panel">
+          <h2 class="tab-panel__title">Factures</h2>
+          <div class="empty-panel">
+            <lucide-icon [img]="icons.Receipt" [size]="32" class="text-ink-light" />
+            <p>Aucune facture enregistrée</p>
+          </div>
+        </div>
+      }
+
+      <!-- ONGLET 7 : PAIEMENTS -->
+      @if (activeTab() === 'payments') {
+        <div class="tab-panel">
+          <h2 class="tab-panel__title">Paiements</h2>
+          <div class="empty-panel">
+            <lucide-icon [img]="icons.Wallet" [size]="32" class="text-ink-light" />
+            <p>Aucun paiement enregistré</p>
+          </div>
+        </div>
+      }
+
+      <!-- ONGLET 8 : DOCUMENTS -->
+      @if (activeTab() === 'documents') {
+        <div class="tab-panel">
+          <h2 class="tab-panel__title">Documents</h2>
+          <div class="empty-panel">
+            <lucide-icon [img]="icons.FolderOpen" [size]="32" class="text-ink-light" />
+            <p>Aucun document téléversé</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

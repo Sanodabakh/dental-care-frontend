@@ -1,0 +1,70 @@
+<div class="finance-dashboard">
+  <header class="page-header">
+    <div>
+      <h1>Finances</h1>
+      <p>Vue d’ensemble de la santé financière du cabinet</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/finance/expenses/new" class="dc-btn-secondary">
+        <svg lucideTrendingDown [size]="14"></svg> Nouvelle dépense
+      </a>
+      <a routerLink="/billing/new" class="dc-btn-primary">
+        <svg lucidePlus [size]="14"></svg> Nouvelle facture
+      </a>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <article class="dc-card stat-card">
+      <div class="stat-top"><span class="stat-icon stat-icon--blue"><svg lucideWallet [size]="18"></svg></span></div>
+      <p class="stat-label">Chiffre d’affaires facturé</p>
+      <div class="stat-value">{{ totalInvoiced() | fcfa }}</div>
+    </article>
+    <article class="dc-card stat-card">
+      <div class="stat-top"><span class="stat-icon stat-icon--green"><svg lucideTrendingUp [size]="18"></svg></span></div>
+      <p class="stat-label">Encaissements</p>
+      <div class="stat-value">{{ totalPaid() | fcfa }}</div>
+    </article>
+    <article class="dc-card stat-card">
+      <div class="stat-top"><span class="stat-icon stat-icon--red"><svg lucideAlertCircle [size]="18"></svg></span></div>
+      <p class="stat-label">Impayés</p>
+      <div class="stat-value">{{ totalUnpaid() | fcfa }}</div>
+    </article>
+    <article class="dc-card stat-card">
+      <div class="stat-top"><span class="stat-icon stat-icon--amber"><svg lucideTrendingDown [size]="18"></svg></span></div>
+      <p class="stat-label">Dépenses</p>
+      <div class="stat-value">{{ totalExpenses() | fcfa }}</div>
+    </article>
+    <article class="dc-card stat-card stat-card--result">
+      <div class="stat-top"><span class="stat-icon stat-icon--violet"><svg lucideWallet [size]="18"></svg></span></div>
+      <p class="stat-label">Résultat de gestion</p>
+      <div class="stat-value" [class.text-success]="result() >= 0" [class.text-danger]="result() < 0">
+        {{ result() | fcfa }}
+      </div>
+    </article>
+  </section>
+
+  <section class="charts-grid">
+    <article class="dc-card chart-card chart-card--wide">
+      <h2 class="chart-title">Recettes</h2>
+      <p class="chart-subtitle">Encaissements des 6 derniers mois</p>
+      <div class="chart-body">
+        <canvas baseChart [data]="revenueChartData" [options]="lineOptions" type="line"></canvas>
+      </div>
+    </article>
+    <article class="dc-card chart-card">
+      <h2 class="chart-title">Dépenses mensuelles</h2>
+      <p class="chart-subtitle">6 derniers mois</p>
+      <div class="chart-body">
+        <canvas baseChart [data]="expenseChartData" [options]="barOptions" type="bar"></canvas>
+      </div>
+    </article>
+    <article class="dc-card chart-card">
+      <h2 class="chart-title">Répartition des dépenses</h2>
+      <p class="chart-subtitle">Par catégorie</p>
+      <div class="chart-body">
+        <canvas baseChart [data]="expensePieData" [options]="doughnutOptions" type="doughnut"></canvas>
+      </div>
+    </article>
+  </section>
+</div>

@@ -1,0 +1,108 @@
+<section class="w-full space-y-5">
+  <header class="flex items-center gap-3">
+    <a routerLink="/billing" class="row-btn" aria-label="Retour aux factures">
+      <lucide-icon [img]="icons.ArrowLeft" [size]="18" />
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-ink">Nouvelle facture</h1>
+      <p class="mt-1 text-sm text-ink-light">Sélectionnez le patient et ajoutez les actes facturés.</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="dc-card space-y-4 p-5">
+    <h2 class="font-semibold text-ink">Patient</h2>
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <input class="dc-input flex-1" [ngModel]="patientNumber()"
+        (ngModelChange)="patientNumber.set($event)"
+        (keyup.enter)="searchPatient()"
+        placeholder="Numéro du patient (ex. PAT-2026-0001)" />
+      <button type="button" class="dc-btn-secondary" [disabled]="loadingPatient()"
+        (click)="searchPatient()">
+        {{ loadingPatient() ? 'Recherche...' : 'Rechercher' }}
+      </button>
+    </div>
+    @if (patientMessage()) {
+      <p class="text-sm" [class.text-red-600]="!patient()"
+        [class.text-green-700]="patient()">{{ patientMessage() }}</p>
+    }
+    @if (patient(); as selectedPatient) {
+      <div class="rounded-lg border border-green-200 bg-green-50 p-4">
+        <p class="font-semibold text-ink">{{ selectedPatient.firstName }} {{ selectedPatient.lastName }}</p>
+        <p class="mt-1 text-sm text-ink-light">{{ selectedPatient.patientNumber }} · {{ selectedPatient.phone || 'Téléphone non renseigné' }}</p>
+      </div>
+    }
+  </div>
+
+  <div class="dc-card space-y-4 p-5">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <h2 class="font-semibold text-ink">Actes et prestations</h2>
+        <p class="mt-1 text-sm text-ink-light">Les montants sont exprimés en FCFA.</p>
+      </div>
+      <button type="button" class="dc-btn-secondary" (click)="addLine()">
+        <lucide-icon [img]="icons.Plus" [size]="15" />
+        Ajouter une ligne
+      </button>
+    </div>
+
+    <div class="space-y-3">
+      @for (line of lines(); track $index; let i = $index) {
+        <div class="grid grid-cols-1 items-end gap-3 rounded-lg border border-slate-200 p-3 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_110px_150px_40px]">
+          <label class="block">
+            <span class="mb-1 block text-xs font-medium text-ink-light">Acte prédéfini</span>
+            <select class="dc-input" [ngModel]="line.treatmentId || ''"
+              (ngModelChange)="selectTreatment(i, $event)">
+              <option value="">Saisie libre</option>
+              @for (treatment of treatments(); track treatment.id) {
+                <option [value]="treatment.id">{{ treatment.code }} — {{ treatment.name }}</option>
+              }
+            </select>
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-xs font-medium text-ink-light">Description</span>
+            <input class="dc-input" [ngModel]="line.description"
+              (ngModelChange)="updateDescription(i, $event)" placeholder="Nom de l'acte" />
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-xs font-medium text-ink-light">Quantité</span>
+            <input class="dc-input" type="number" min="1" step="1" [ngModel]="line.quantity"
+              (ngModelChange)="updateQuantity(i, $event)" />
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-xs font-medium text-ink-light">Prix unitaire (FCFA)</span>
+            <input class="dc-input" type="number" min="0" step="1" [ngModel]="line.unitPriceFcfa"
+              (ngModelChange)="updatePrice(i, $event)" />
+          </label>
+          <button type="button" class="row-btn row-btn--danger" title="Supprimer la ligne"
+            [disabled]="lines().length === 1" (click)="removeLine(i)">
+            <lucide-icon [img]="icons.Trash" [size]="15" />
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="ml-auto grid max-w-sm grid-cols-2 gap-x-8 gap-y-3 border-t border-slate-200 pt-4 text-sm">
+      <span class="text-ink-light">Sous-total</span>
+      <strong class="text-right">{{ subtotalFcfa | fcfa }}</strong>
+      <label for="discount" class="self-center text-ink-light">Remise (FCFA)</label>
+      <input id="discount" class="dc-input text-right" type="number" min="0" step="1"
+        [ngModel]="discountFcfa()" (ngModelChange)="updateDiscount($event)" />
+      <span class="font-semibold text-ink">Total à payer</span>
+      <strong class="text-right text-lg text-primary">{{ totalFcfa | fcfa }}</strong>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap justify-end gap-3">
+    <button type="button" class="dc-btn-secondary" (click)="cancel()">Annuler</button>
+    <button type="button" class="dc-btn-primary" [disabled]="saving()" (click)="save()">
+      <lucide-icon [img]="icons.Save" [size]="16" />
+      {{ saving() ? 'Enregistrement...' : 'Créer la facture' }}
+    </button>
+  </div>
+</section>

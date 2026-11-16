@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@config "../tailwind.config.js";
+
+@layer base {
+  html, body {
+    @apply h-full m-0 bg-surface text-ink font-sans text-sm antialiased;
+  }
+  * { @apply box-border; }
+  button { @apply cursor-pointer; }
+}
+
+@layer components {
+  .dc-card {
+    @apply bg-white border border-border rounded-card shadow-card p-4;
+  }
+  .dc-btn {
+    @apply inline-flex items-center justify-center gap-2 h-9 px-3 rounded-md text-xs font-semibold border border-transparent transition-colors;
+  }
+  .dc-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 h-9 px-3 rounded-md text-xs font-semibold border border-transparent transition-colors bg-primary text-white hover:bg-primary-dark;
+  }
+  .dc-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 h-9 px-3 rounded-md text-xs font-semibold border border-border transition-colors bg-white text-ink hover:bg-surface;
+  }
+  .dc-badge {
+    @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold;
+  }
+  .dc-badge-success { @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-green-50 text-green-700; }
+  .dc-badge-warning { @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700; }
+  .dc-badge-danger  { @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-red-50 text-red-700; }
+  .dc-badge-info    { @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700; }
+  .dc-input {
+    @apply h-9 w-full px-3 border border-border rounded-md text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+  .dc-table { @apply w-full border-collapse; }
+  .dc-table th {
+    @apply text-left px-2 py-3 text-[11px] text-ink-muted uppercase tracking-wider border-b border-border;
+  }
+  .dc-table td {
+    @apply px-2 py-3 border-b border-gray-100 text-[13px];
+  }
+  .dc-table tr:last-child td { @apply border-b-0; }
+}
+
+app-shell .shell-content > main > router-outlet + * {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}

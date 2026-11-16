@@ -1,0 +1,255 @@
+.consultation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  animation: fadeIn 0.3s ease;
+}
+
+.consultation-form__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid #E8EDF3;
+  background: white;
+  color: #405166;
+  cursor: pointer;
+}
+
+.back-btn:hover { background: #F5F8FC; color: #1769AA; }
+
+.consultation-form__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  color: #21374d;
+}
+
+.consultation-form__subtitle {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #8996a5;
+}
+
+/* RECHERCHE */
+.search-card { padding: 24px; }
+
+.search-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 650;
+  color: #2c4055;
+}
+
+.search-card__hint {
+  margin: 0 0 18px;
+  font-size: 12px;
+  color: #718096;
+}
+
+.search-row {
+  display: flex;
+  gap: 10px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-input-wrapper input {
+  font-family: 'SF Mono', Monaco, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.search-error {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  font-size: 12px;
+}
+
+/* PATIENT CARD */
+.patient-card { padding: 18px 20px; }
+
+.patient-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.patient-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.patient-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #2185c9, #1769aa);
+  color: white;
+}
+
+.patient-info h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  color: #21374d;
+}
+
+.patient-ref {
+  margin: 3px 0 0;
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 11px;
+  color: #1769AA;
+  font-weight: 600;
+  background: #EAF4FB;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.patient-meta {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #8996a5;
+}
+
+/* FORMULAIRE */
+.consultation-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section { padding: 20px; }
+
+.form-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #2c4055;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #F0F2F5;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5a6b7e;
+}
+
+.required { color: #DC2626; }
+.form-error { margin: 0; font-size: 10px; color: #DC2626; }
+
+.form-textarea {
+  height: auto !important;
+  padding: 8px 12px !important;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+/* SUCCÈS */
+.success-card {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.success-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #EAF7F1;
+  color: #16A34A;
+}
+
+.success-card h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 650;
+  color: #21374d;
+}
+
+.success-card p {
+  margin: 0 0 20px;
+  font-size: 13px;
+  color: #718096;
+}
+
+.success-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .search-row { flex-direction: column; }
+  .patient-card__header { flex-direction: column; align-items: flex-start; }
+}

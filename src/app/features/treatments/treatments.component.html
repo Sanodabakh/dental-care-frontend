@@ -1,0 +1,82 @@
+<div class="treatment-list">
+  <header class="page-header">
+    <div>
+      <h1>Actes & traitements</h1>
+      <p>Catalogue des actes dentaires et tarifs</p>
+    </div>
+    <a routerLink="/treatments/new" class="dc-btn-primary">
+      <svg lucidePlus [size]="16"></svg>
+      Nouvel acte
+    </a>
+  </header>
+
+  <div class="dc-card filters">
+    <div class="filter-search">
+      <svg lucideSearch [size]="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none"></svg>
+      <input
+        [ngModel]="search()"
+        (ngModelChange)="onSearch($event)"
+        placeholder="Rechercher par nom ou code..."
+        class="dc-input pl-9" />
+    </div>
+    <div class="filter-category">
+      <svg lucideFilter [size]="14" class="text-ink-light"></svg>
+      <select [ngModel]="category()" (ngModelChange)="onCategory($event)" class="dc-input">
+        <option value="ALL">Toutes catégories</option>
+        @for (c of categories; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="dc-card">
+    @if (loading()) {
+      <div class="loading-state"><div class="spinner"></div><p>Chargement...</p></div>
+    } @else if (treatments().length === 0) {
+      <div class="empty-state"><p>Aucun acte trouvé</p></div>
+    } @else {
+      <table class="dc-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Acte</th>
+            <th>Catégorie</th>
+            <th>Tarif</th>
+            <th>Durée</th>
+            <th>Statut</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of treatments(); track t.id) {
+            <tr>
+              <td><span class="code-badge">{{ t.code }}</span></td>
+              <td><strong>{{ t.name }}</strong></td>
+              <td>{{ t.category }}</td>
+              <td><strong>{{ t.priceFcfa | fcfa }}</strong></td>
+              <td>{{ t.estimatedDurationMin }} min</td>
+              <td>
+                @if (t.active) {
+                  <span class="dc-badge dc-badge-success">Actif</span>
+                } @else {
+                  <span class="dc-badge dc-badge-warning">Inactif</span>
+                }
+              </td>
+              <td>
+                <div class="row-actions">
+                  <a [routerLink]="['/treatments', t.id, 'edit']" class="row-btn" title="Modifier">
+                    <svg lucideEdit [size]="14"></svg>
+                  </a>
+                  <button (click)="toggle(t)" class="row-btn" [title]="t.active ? 'Désactiver' : 'Activer'">
+                    <svg lucidePower [size]="14"></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

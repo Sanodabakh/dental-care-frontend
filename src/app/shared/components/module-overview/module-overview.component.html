@@ -1,0 +1,34 @@
+<main class="module-page">
+  <header class="module-page__header">
+    <div>
+      <p class="module-page__eyebrow">GESTION DU CABINET</p>
+      <h1>{{ config.title }}</h1>
+      <p class="module-page__subtitle">{{ config.subtitle }}</p>
+    </div>
+    <span class="module-page__status">Module initialisé</span>
+  </header>
+
+  <section class="dc-card module-page__panel">
+    <div class="module-page__panel-heading">
+      <span class="module-page__symbol" aria-hidden="true">{{ config.title.slice(0, 1) }}</span>
+      <div>
+        <h2>{{ config.panelTitle }}</h2>
+        <p>{{ config.description }}</p>
+      </div>
+    </div>
+
+    <div class="module-page__empty">
+      <h3>Votre espace est prêt</h3>
+      <p>Les écrans de ce module sont en place. Les données et actions métier pourront y être ajoutées.</p>
+    </div>
+
+    <div class="module-page__next">
+      <h3>Éléments prévus</h3>
+      <ul>
+        @for (step of config.nextSteps; track step) {
+          <li>{{ step }}</li>
+        }
+      </ul>
+    </div>
+  </section>
+</main>

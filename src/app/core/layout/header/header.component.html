@@ -1,0 +1,60 @@
+<header class="header-root h-[67px] bg-white border-b border-border px-8 flex items-center justify-between shrink-0">
+
+  <div class="header-breadcrumb flex items-center gap-2 text-[10px] text-ink-light">
+    <button class="lg:hidden w-9 h-9 rounded-md grid place-items-center text-ink-light hover:bg-surface">
+      <lucide-icon [img]="icons.Menu" [size]="20" />
+    </button>
+    <span>Mon cabinet</span>
+    <lucide-icon [img]="icons.ChevronRight" [size]="13" />
+    <strong class="font-semibold text-ink">{{ currentPage }}</strong>
+  </div>
+
+  <div class="header-right flex items-center gap-3">
+  <div class="header-search flex items-center gap-3">
+    <div class="relative">
+      <lucide-icon [img]="icons.Search" [size]="16"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none" />
+      <input [(ngModel)]="query" placeholder="Rechercher un patient..."
+        class="search-input h-9 w-64 pl-9 pr-12 bg-surface border border-border rounded-md text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+      <kbd class="search-kbd absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-ink-light bg-white border border-border rounded px-1.5 py-0.5">
+        ⌘ K
+      </kbd>
+    </div>
+  </div>
+
+  <div class="header-actions flex items-center gap-2">
+    <button class="notification-btn relative w-9 h-9 grid place-items-center rounded-md text-ink-muted hover:bg-surface">
+      <lucide-icon [img]="icons.Bell" [size]="19" />
+      <span class="notif-dot absolute top-1.5 right-2 w-1.5 h-1.5 bg-red-400 rounded-full border border-white"></span>
+    </button>
+
+    <div class="w-px h-6 bg-border mx-1"></div>
+
+    <div class="relative">
+      <button (click)="toggleMenu()" class="profile-btn flex items-center gap-2 pl-1 pr-2 py-1 rounded-md hover:bg-surface">
+        <div class="avatar w-8 h-8 rounded-full bg-gradient-to-br from-orange-300 to-rose-400 text-white text-[10px] font-bold grid place-items-center">
+          {{ initials(auth.user()?.fullName) }}
+        </div>
+        <lucide-icon [img]="icons.ChevronDown" [size]="14" class="text-ink-light" />
+      </button>
+
+      @if (menuOpen()) {
+        <div class="profile-menu absolute right-0 top-full mt-2 w-56 bg-white border border-border rounded-lg shadow-modal py-1 z-50">
+          <div class="px-3 py-2 border-b border-border">
+            <div class="text-xs font-semibold text-ink">{{ auth.user()?.fullName }}</div>
+            <div class="text-[11px] text-ink-muted">{{ auth.user()?.email }}</div>
+          </div>
+          <a routerLink="/settings" (click)="menuOpen.set(false)"
+            class="menu-item flex items-center gap-2 px-3 py-2 text-xs text-ink hover:bg-surface">
+            <lucide-icon [img]="icons.Settings" [size]="14" /> Paramètres
+          </a>
+          <button (click)="logout()"
+            class="menu-item menu-item-danger w-full flex items-center gap-2 px-3 py-2 text-xs text-danger hover:bg-red-50">
+            <lucide-icon [img]="icons.LogOut" [size]="14" /> Déconnexion
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+  </div>
+</header>

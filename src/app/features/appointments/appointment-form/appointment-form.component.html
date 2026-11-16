@@ -1,0 +1,122 @@
+<div class="appointment-form">
+
+  <header class="appointment-form__header">
+    <button (click)="cancel()" class="back-btn">
+      <lucide-icon [img]="icons.ArrowLeft" [size]="16" />
+    </button>
+    <div>
+      <h1 class="appointment-form__title">
+        {{ isEdit() ? 'Modifier le rendez-vous' : 'Nouveau rendez-vous' }}
+      </h1>
+      <p class="appointment-form__subtitle">
+        Planifiez un rendez-vous en vérifiant les disponibilités
+      </p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="dc-card loading-state">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="appointment-form__body">
+
+      <section class="dc-card form-section">
+        <h2 class="form-section__title">Informations du rendez-vous</h2>
+
+        <div class="form-grid">
+          <div class="form-field form-field--full">
+            <label class="form-label">Patient <span class="required">*</span></label>
+            <select formControlName="patientId" class="dc-input">
+              <option value="">Sélectionner un patient</option>
+              @for (p of patients(); track p.id) {
+                <option [value]="p.id">
+                  {{ p.patientNumber }} · {{ p.firstName }} {{ p.lastName }}
+                </option>
+              }
+            </select>
+            @if (fieldError('patientId'); as err) {
+              <p class="form-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="form-field form-field--full">
+            <label class="form-label">Dentiste <span class="required">*</span></label>
+            <select formControlName="dentistId" class="dc-input">
+              @for (d of dentists; track d.id) {
+                <option [value]="d.id">{{ d.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field form-field--full">
+            <label class="form-label">Date <span class="required">*</span></label>
+            <input type="date" formControlName="date" class="dc-input" />
+            @if (fieldError('date'); as err) {
+              <p class="form-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Heure de début <span class="required">*</span></label>
+            <input type="time" formControlName="startTime" class="dc-input" />
+            @if (fieldError('startTime'); as err) {
+              <p class="form-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Heure de fin <span class="required">*</span></label>
+            <input type="time" formControlName="endTime" class="dc-input" />
+            @if (form.errors?.['endBeforeStart'] && form.get('endTime')?.touched) {
+              <p class="form-error">L'heure de fin doit être après l'heure de début</p>
+            }
+          </div>
+
+          <div class="form-field form-field--full">
+            <label class="form-label">Motif <span class="required">*</span></label>
+            <input formControlName="motif" class="dc-input"
+              placeholder="Consultation, détartrage, extraction..." />
+            @if (fieldError('motif'); as err) {
+              <p class="form-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="form-field form-field--full">
+            <label class="form-label">Observation</label>
+            <textarea formControlName="observation" rows="3" class="dc-input form-textarea"
+              placeholder="Notes facultatives..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      @if (conflictError()) {
+        <div class="error-banner error-banner--warning">
+          <lucide-icon [img]="icons.AlertTriangle" [size]="16" />
+          {{ conflictError() }}
+        </div>
+      }
+
+      @if (error()) {
+        <div class="error-banner">
+          <lucide-icon [img]="icons.X" [size]="16" />
+          {{ error() }}
+        </div>
+      }
+
+      <div class="form-actions">
+        <button type="button" (click)="cancel()" class="dc-btn-secondary">Annuler</button>
+        <button type="submit" [disabled]="saving() || form.invalid" class="dc-btn-primary">
+          @if (saving()) {
+            <span class="spinner-sm"></span>
+            Enregistrement...
+          } @else {
+            <lucide-icon [img]="icons.Save" [size]="15" />
+            {{ isEdit() ? 'Mettre à jour' : 'Créer le rendez-vous' }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

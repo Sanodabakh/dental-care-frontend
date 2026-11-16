@@ -1,0 +1,58 @@
+<div class="staff-list">
+  <header class="page-header">
+    <div><h1>Personnel</h1><p>Équipe du cabinet dentaire</p></div>
+    <a routerLink="/staff/new" class="dc-btn-primary">
+      <svg lucidePlus [size]="16"></svg> Nouveau membre
+    </a>
+  </header>
+
+  <div class="dc-card filters">
+    <div class="filter-search">
+      <svg lucideSearch [size]="16"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none"></svg>
+      <input [ngModel]="search()" (ngModelChange)="onSearch($event)"
+        placeholder="Rechercher un membre..." class="dc-input pl-9" />
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+  @if (loading()) {
+    <div class="dc-card loading-state"><div class="spinner"></div><p>Chargement...</p></div>
+  } @else if (staff().length === 0) {
+    <div class="dc-card empty-state">Aucun membre du personnel trouvé.</div>
+  } @else {
+    <div class="staff-grid">
+      @for (member of staff(); track member.id) {
+        <div class="dc-card staff-card" [class.staff-card--inactive]="!member.active">
+          <div class="staff-header">
+            <div class="staff-avatar">{{ initials(member) }}</div>
+            <div class="staff-info">
+              <h3>{{ member.firstName }} {{ member.lastName }}</h3>
+              <p class="staff-specialty">{{ member.specialty || roleLabel(member.role) }}</p>
+            </div>
+            <span class="dc-badge" [ngClass]="member.active ? 'dc-badge-success' : 'dc-badge-warning'">
+              {{ member.active ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+
+          <div class="staff-meta">
+            <div class="meta-row"><svg lucideMail [size]="12"></svg><span>{{ member.email }}</span></div>
+            @if (member.phone) {
+              <div class="meta-row"><svg lucidePhone [size]="12"></svg><span>{{ member.phone }}</span></div>
+            }
+          </div>
+
+          <div class="staff-footer">
+            <span class="dc-badge" [ngClass]="roleClass(member.role)">{{ roleLabel(member.role) }}</span>
+            <button type="button" (click)="toggle(member)" class="toggle-btn"
+              [title]="member.active ? 'Désactiver' : 'Activer'">
+              <svg lucidePower [size]="14"></svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

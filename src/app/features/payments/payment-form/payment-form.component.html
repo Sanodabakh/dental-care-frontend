@@ -1,0 +1,85 @@
+<section class="w-full space-y-5">
+  <header class="flex items-center gap-3">
+    <a routerLink="/payments" class="row-btn" aria-label="Retour aux paiements">
+      <lucide-icon [img]="icons.ArrowLeft" [size]="18" />
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-ink">Enregistrer un paiement</h1>
+      <p class="mt-1 text-sm text-ink-light">Le paiement sera associé à une facture validée.</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="dc-card space-y-4 p-5">
+    <h2 class="font-semibold text-ink">Facture</h2>
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <input class="dc-input flex-1" [ngModel]="invoiceNumber()"
+        (ngModelChange)="invoiceNumber.set($event)" (keyup.enter)="searchInvoice()"
+        placeholder="Numéro de facture (ex. FAC-2026-0001)" />
+      <button type="button" class="dc-btn-secondary" [disabled]="loadingInvoice()"
+        (click)="searchInvoice()">
+        {{ loadingInvoice() ? 'Recherche...' : 'Rechercher' }}
+      </button>
+    </div>
+
+    @if (invoice(); as current) {
+      <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div class="flex flex-wrap justify-between gap-3">
+          <div>
+            <p class="font-semibold text-ink">{{ current.invoiceNumber }}</p>
+            <p class="mt-1 text-sm text-ink-light">{{ current.patientName || current.patientNumber || current.patientId }}</p>
+          </div>
+          <span class="dc-badge dc-badge-warning">{{ invoiceStatusLabel() }}</span>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-3 border-t border-slate-200 pt-3 text-sm">
+          <span class="text-ink-light">Total facture</span>
+          <strong class="text-right">{{ current.totalFcfa | fcfa }}</strong>
+          <span class="text-ink-light">Déjà payé</span>
+          <strong class="text-right">{{ current.paidFcfa | fcfa }}</strong>
+          <span class="font-semibold text-ink">Solde restant</span>
+          <strong class="text-right text-primary">{{ current.balanceFcfa | fcfa }}</strong>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="dc-card space-y-4 p-5">
+    <h2 class="font-semibold text-ink">Détails du règlement</h2>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium text-ink">Montant (FCFA)</span>
+        <input class="dc-input" type="number" min="1" step="1" [ngModel]="amountFcfa()"
+          (ngModelChange)="updateAmount($event)" />
+      </label>
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium text-ink">Mode de paiement</span>
+        <select class="dc-input" [ngModel]="paymentMethod()"
+          (ngModelChange)="paymentMethod.set($event)">
+          @for (method of methods; track method.value) {
+            <option [value]="method.value">{{ method.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="block sm:col-span-2">
+        <span class="mb-1 block text-sm font-medium text-ink">Référence (facultatif)</span>
+        <input class="dc-input" [ngModel]="reference()"
+          (ngModelChange)="reference.set($event)"
+          placeholder="N° de transaction, référence bancaire..." />
+      </label>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3">
+    <a routerLink="/payments" class="dc-btn-secondary">Annuler</a>
+    <button type="button" class="dc-btn-primary" [disabled]="saving() || !canPay()"
+      (click)="submit()">
+      <lucide-icon [img]="icons.Save" [size]="16" />
+      {{ saving() ? 'Enregistrement...' : 'Enregistrer le paiement' }}
+    </button>
+  </div>
+</section>

@@ -1,0 +1,60 @@
+<aside class="sidebar-root fixed top-0 left-0 bottom-0 z-30 bg-white border-r border-border flex flex-col transition-all duration-200"
+       [class.w-60]="!collapsed"
+       [class.w-20]="collapsed">
+
+  <div class="sidebar-brand h-[77px] flex items-center px-4 border-b border-border shrink-0"
+       [class.justify-center]="collapsed">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white grid place-items-center shrink-0">
+        <lucide-icon [img]="icons.Smile" [size]="20" />
+      </div>
+      @if (!collapsed) {
+        <div class="leading-none">
+          <div class="text-base font-bold text-ink tracking-tight">
+            dental<span class="text-primary">care</span>
+          </div>
+          <div class="text-[8px] tracking-[1.7px] font-bold text-ink-light mt-1">MANAGEMENT</div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <nav class="sidebar-nav flex-1 overflow-y-auto py-3 px-3 space-y-6">
+    @for (group of groups; track group.label) {
+      <div class="nav-group">
+        @if (!collapsed) {
+          <p class="nav-group-label text-[9px] font-bold uppercase tracking-wider text-ink-light ml-2 mb-2">
+            {{ group.label }}
+          </p>
+        }
+        <div class="space-y-1">
+          @for (item of group.items; track item.route) {
+            <a [routerLink]="item.route"
+               routerLinkActive="nav-item-active"
+               [routerLinkActiveOptions]="{ exact: false }"
+               class="nav-item flex items-center gap-3 px-2.5 py-2 rounded-md text-xs font-medium text-ink-muted hover:bg-surface hover:text-primary transition-colors"
+               [class.justify-center]="collapsed">
+              <lucide-icon [img]="item.icon" [size]="18" class="shrink-0" />
+              @if (!collapsed) {
+                <span class="flex-1">{{ item.label }}</span>
+                @if (item.badge) {
+                  <span class="nav-badge text-[10px] bg-surface text-ink-muted rounded-full px-2 py-0.5">
+                    {{ item.badge }}
+                  </span>
+                }
+              }
+            </a>
+          }
+        </div>
+      </div>
+    }
+  </nav>
+
+  <div class="sidebar-toggle p-3 border-t border-border">
+    <button (click)="toggle.emit()"
+      class="w-full h-8 grid place-items-center rounded-md border border-border text-ink-light hover:bg-surface hover:text-primary transition-colors">
+      <lucide-icon [img]="icons.ChevronLeft" [size]="16"
+        [class.rotate-180]="collapsed" class="transition-transform duration-200" />
+    </button>
+  </div>
+</aside>

@@ -1,0 +1,249 @@
+<main class="odontogram">
+  <header class="odontogram__header">
+    <div>
+      <p class="odontogram__eyebrow">DOSSIER CLINIQUE</p>
+      <h1 class="odontogram__title">Odontogramme</h1>
+      <p class="odontogram__subtitle">Sélectionnez une dent pour consulter ou enregistrer une observation.</p>
+    </div>
+
+    <div class="patient-picker">
+      <label for="patient-number">Numéro du patient</label>
+      <div class="patient-search">
+        <input
+          id="patient-number"
+          class="dc-input"
+          type="text"
+          placeholder="PAT-2026-0001"
+          autocomplete="off"
+          [value]="patientNumberInput()"
+          (input)="patientNumberInput.set($any($event.target).value)"
+          (keyup.enter)="searchPatient()">
+        <button
+          type="button"
+          class="dc-btn-primary"
+          [disabled]="searching() || loading()"
+          (click)="searchPatient()">
+          @if (searching()) { Recherche… } @else { Rechercher }
+        </button>
+      </div>
+    </div>
+  </header>
+
+  @if (patientError()) {
+    <div class="error-banner" role="alert">{{ patientError() }}</div>
+  }
+
+  @if (searching() || loading()) {
+    <div class="dc-card loading-state">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Chargement du dossier patient…</p>
+    </div>
+  } @else if (!patient()) {
+    <div class="dc-card select-hint">
+      <h2>Sélectionnez un patient</h2>
+      <p>Saisissez son numéro de dossier ci-dessus pour afficher ses 32 dents.</p>
+    </div>
+  } @else {
+    <section class="dc-card odontogram-card" aria-label="Schéma dentaire FDI">
+      <div class="odontogram-card__heading">
+        <div>
+          <h2>Notation FDI · Dentition permanente</h2>
+          <p>{{ patient()?.firstName }} {{ patient()?.lastName }} · {{ patient()?.patientNumber }} · 32 dents</p>
+        </div>
+        <span class="saved-label">Historique sauvegardé</span>
+      </div>
+
+      <p class="arch-label">Maxillaire · supérieur</p>
+      <div class="arch">
+        @for (tooth of upperRight; track tooth) {
+          <button
+            type="button"
+            class="tooth"
+            [class.tooth--selected]="selectedTooth() === tooth"
+            [attr.aria-label]="'Dent ' + tooth + ', ' + toothLabel(tooth)"
+            [attr.aria-pressed]="selectedTooth() === tooth"
+            [title]="'Dent ' + tooth + ' · ' + toothLabel(tooth)"
+            (click)="selectTooth(tooth)">
+            <svg viewBox="0 0 42 48" aria-hidden="true">
+              <path d="M11 5c-5 0-8 4-8 10 0 5 3 8 4 13l2 13c.4 2.5 3 3.2 4.2.7l4-9c1.4-3.1 3.8-3.1 5.2 0l4 9c1.2 2.5 3.8 1.8 4.2-.7l2-13c1-5 4-8 4-13 0-6-3-10-8-10-4 0-6 2-9 2s-4-2-9-2Z"
+                [attr.fill]="toothColor(tooth)" />
+            </svg>
+            <span>{{ tooth }}</span>
+          </button>
+        }
+        <span class="arch-midline" aria-hidden="true"></span>
+        @for (tooth of upperLeft; track tooth) {
+          <button
+            type="button"
+            class="tooth"
+            [class.tooth--selected]="selectedTooth() === tooth"
+            [attr.aria-label]="'Dent ' + tooth + ', ' + toothLabel(tooth)"
+            [attr.aria-pressed]="selectedTooth() === tooth"
+            [title]="'Dent ' + tooth + ' · ' + toothLabel(tooth)"
+            (click)="selectTooth(tooth)">
+            <svg viewBox="0 0 42 48" aria-hidden="true">
+              <path d="M11 5c-5 0-8 4-8 10 0 5 3 8 4 13l2 13c.4 2.5 3 3.2 4.2.7l4-9c1.4-3.1 3.8-3.1 5.2 0l4 9c1.2 2.5 3.8 1.8 4.2-.7l2-13c1-5 4-8 4-13 0-6-3-10-8-10-4 0-6 2-9 2s-4-2-9-2Z"
+                [attr.fill]="toothColor(tooth)" />
+            </svg>
+            <span>{{ tooth }}</span>
+          </button>
+        }
+      </div>
+
+      <p class="arch-label">Mandibulaire · inférieur</p>
+      <div class="arch">
+        @for (tooth of lowerRight; track tooth) {
+          <button
+            type="button"
+            class="tooth"
+            [class.tooth--selected]="selectedTooth() === tooth"
+            [attr.aria-label]="'Dent ' + tooth + ', ' + toothLabel(tooth)"
+            [attr.aria-pressed]="selectedTooth() === tooth"
+            [title]="'Dent ' + tooth + ' · ' + toothLabel(tooth)"
+            (click)="selectTooth(tooth)">
+            <svg viewBox="0 0 42 48" aria-hidden="true">
+              <path d="M11 5c-5 0-8 4-8 10 0 5 3 8 4 13l2 13c.4 2.5 3 3.2 4.2.7l4-9c1.4-3.1 3.8-3.1 5.2 0l4 9c1.2 2.5 3.8 1.8 4.2-.7l2-13c1-5 4-8 4-13 0-6-3-10-8-10-4 0-6 2-9 2s-4-2-9-2Z"
+                [attr.fill]="toothColor(tooth)" />
+            </svg>
+            <span>{{ tooth }}</span>
+          </button>
+        }
+        <span class="arch-midline" aria-hidden="true"></span>
+        @for (tooth of lowerLeft; track tooth) {
+          <button
+            type="button"
+            class="tooth"
+            [class.tooth--selected]="selectedTooth() === tooth"
+            [attr.aria-label]="'Dent ' + tooth + ', ' + toothLabel(tooth)"
+            [attr.aria-pressed]="selectedTooth() === tooth"
+            [title]="'Dent ' + tooth + ' · ' + toothLabel(tooth)"
+            (click)="selectTooth(tooth)">
+            <svg viewBox="0 0 42 48" aria-hidden="true">
+              <path d="M11 5c-5 0-8 4-8 10 0 5 3 8 4 13l2 13c.4 2.5 3 3.2 4.2.7l4-9c1.4-3.1 3.8-3.1 5.2 0l4 9c1.2 2.5 3.8 1.8 4.2-.7l2-13c1-5 4-8 4-13 0-6-3-10-8-10-4 0-6 2-9 2s-4-2-9-2Z"
+                [attr.fill]="toothColor(tooth)" />
+            </svg>
+            <span>{{ tooth }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="legend">
+        @for (item of legend; track item.label) {
+          <div class="legend-item">
+            <span class="legend-dot" [style.background]="item.color"></span>
+            <span>{{ item.label }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="details-grid">
+      <section class="dc-card detail-card">
+        <header class="detail-card__header">
+          <div>
+            <h2>Historique de la dent</h2>
+            <p>
+              @if (selectedTooth()) {
+                Observations enregistrées pour la dent {{ selectedTooth() }}.
+              } @else {
+                Observations récentes du patient.
+              }
+            </p>
+          </div>
+          <span class="history-count">
+            {{ selectedTooth() ? toothHistory().length : patientHistory().length }} observation(s)
+          </span>
+        </header>
+
+        @if (!selectedTooth()) {
+          <p class="history-hint">Choisissez une dent dans le schéma pour afficher son historique.</p>
+          @if (patientHistory().length > 0) {
+            <div class="history-list">
+              @for (item of patientHistory().slice(0, 5); track item.id) {
+                <article class="history-item">
+                  <span class="history-dot" [style.background]="conditionColor(item.condition)"></span>
+                  <div class="history-content">
+                    <strong>Dent {{ item.toothNumber }} · {{ conditionLabel(item.condition) }}</strong>
+                    @if (item.observation) { <p>{{ item.observation }}</p> }
+                    <span>{{ item.createdAt | dateFr }} · {{ item.createdBy }}</span>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        } @else if (toothHistory().length === 0) {
+          <p class="empty-state">Aucun historique pour cette dent.</p>
+        } @else {
+          <div class="history-list">
+            @for (item of toothHistory(); track item.id) {
+              <article class="history-item">
+                <span class="history-dot" [style.background]="conditionColor(item.condition)"></span>
+                <div class="history-content">
+                  <strong>{{ conditionLabel(item.condition) }}</strong>
+                  @if (item.observation) { <p>{{ item.observation }}</p> }
+                  <span>{{ item.createdAt | dateFr }} · {{ item.createdBy }}</span>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="dc-card detail-card">
+        <header class="detail-card__header">
+          <div>
+            <h2>Nouvelle observation</h2>
+            <p>
+              @if (selectedTooth()) {
+                Enregistrement pour la dent {{ selectedTooth() }}.
+              } @else {
+                Sélectionnez une dent dans le schéma.
+              }
+            </p>
+          </div>
+          @if (selectedTooth()) {
+            <span class="tooth-chip">Dent {{ selectedTooth() }}</span>
+          }
+        </header>
+
+        @if (selectedTooth()) {
+          <div class="observation-form">
+            <div class="form-field">
+              <label class="form-label" for="condition">État de la dent</label>
+              <select
+                id="condition"
+                class="dc-input"
+                [value]="newCondition()"
+                (change)="newCondition.set($any($event.target).value)">
+                @for (condition of conditions; track condition.value) {
+                  <option [value]="condition.value">{{ condition.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" for="observation">Observation</label>
+              <textarea
+                id="observation"
+                class="form-textarea"
+                rows="4"
+                [value]="newObservation()"
+                (input)="newObservation.set($any($event.target).value)"
+                placeholder="Décrivez l’état ou le soin réalisé…"></textarea>
+            </div>
+
+            @if (saveError()) {
+              <p class="error-message" role="alert">{{ saveError() }}</p>
+            }
+
+            <button type="button" class="dc-btn-primary save-button" [disabled]="saving()" (click)="addObservation()">
+              @if (saving()) { Enregistrement… } @else { Enregistrer l’observation }
+            </button>
+          </div>
+        } @else {
+          <p class="empty-state">Choisissez un numéro de dent pour ouvrir son dossier et noter son état.</p>
+        }
+      </section>
+    </div>
+  }
+</main>

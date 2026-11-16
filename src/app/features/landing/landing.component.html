@@ -1,0 +1,290 @@
+<div class="landing">
+  <header class="landing-header">
+    <div class="container header-inner">
+      <a routerLink="/" class="brand" aria-label="DentalCare, accueil">
+        <span class="brand-mark"><lucide-icon [img]="icons.Smile" [size]="22" /></span>
+        <span class="brand-text">
+          <span class="brand-name">dental<span>care</span></span>
+          <span class="brand-sub">MANAGEMENT</span>
+        </span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Navigation principale">
+        <button type="button" (click)="scrollTo('features')" class="nav-link">Fonctionnalités</button>
+        <button type="button" (click)="scrollTo('modules')" class="nav-link">Modules</button>
+        <button type="button" (click)="scrollTo('testimonials')" class="nav-link">Témoignages</button>
+        <button type="button" (click)="scrollTo('contact')" class="nav-link">Contact</button>
+      </nav>
+
+      <div class="header-actions">
+        @if (isAuthenticated()) {
+          <a routerLink="/dashboard" class="btn btn-primary">
+            Mon espace <lucide-icon [img]="icons.ArrowRight" [size]="15" />
+          </a>
+        } @else {
+          <a routerLink="/login" class="btn btn-ghost">Se connecter</a>
+          <a routerLink="/login" class="btn btn-primary">Essayer gratuitement</a>
+        }
+        <button type="button" (click)="toggleMobileMenu()" class="mobile-menu-btn"
+          [attr.aria-expanded]="mobileMenuOpen()"
+          [attr.aria-label]="mobileMenuOpen() ? 'Fermer le menu' : 'Ouvrir le menu'">
+          @if (mobileMenuOpen()) {
+            <lucide-icon [img]="icons.X" [size]="22" />
+          } @else {
+            <lucide-icon [img]="icons.Menu" [size]="22" />
+          }
+        </button>
+      </div>
+    </div>
+
+    @if (mobileMenuOpen()) {
+      <nav class="mobile-nav" aria-label="Navigation mobile">
+        <button type="button" (click)="scrollTo('features')" class="mobile-nav-link">Fonctionnalités</button>
+        <button type="button" (click)="scrollTo('modules')" class="mobile-nav-link">Modules</button>
+        <button type="button" (click)="scrollTo('testimonials')" class="mobile-nav-link">Témoignages</button>
+        <button type="button" (click)="scrollTo('contact')" class="mobile-nav-link">Contact</button>
+        @if (!isAuthenticated()) {
+          <a routerLink="/login" class="btn btn-primary mobile-login">Se connecter</a>
+        }
+      </nav>
+    }
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <lucide-icon [img]="icons.Sparkles" [size]="14" />
+            DentalCare Management
+          </div>
+          <h1 class="hero-title">
+            La gestion sereine de votre <span class="highlight">cabinet dentaire</span>
+          </h1>
+          <p class="hero-subtitle">
+            Centralisez les patients, rendez-vous, consultations, odontogrammes, factures et stocks
+            dans un espace de travail clair et professionnel.
+          </p>
+          <div class="hero-cta">
+            <a routerLink="/login" class="btn btn-primary btn-lg">
+              Commencer maintenant <lucide-icon [img]="icons.ArrowRight" [size]="16" />
+            </a>
+            <button type="button" (click)="scrollTo('features')" class="btn btn-outline btn-lg">
+              Découvrir la plateforme
+            </button>
+          </div>
+          <ul class="hero-checks">
+            @for (item of checkItems; track item) {
+              <li><span class="check-icon"><lucide-icon [img]="icons.Check" [size]="12" /></span>{{ item }}</li>
+            }
+          </ul>
+        </div>
+
+        <div class="hero-visual" aria-label="Aperçu de l’espace DentalCare">
+          <div class="hero-mockup">
+            <div class="mockup-header">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+              <span class="mockup-url">app.dentalcare.sn</span>
+            </div>
+            <div class="mockup-body">
+              <div class="mockup-sidebar">
+                <span class="mockup-item active"></span>
+                <span class="mockup-item"></span>
+                <span class="mockup-item"></span>
+                <span class="mockup-item"></span>
+                <span class="mockup-item"></span>
+              </div>
+              <div class="mockup-content">
+                <span class="mockup-title"></span>
+                <div class="mockup-stats">
+                  <span class="mockup-stat"></span><span class="mockup-stat"></span><span class="mockup-stat"></span>
+                </div>
+                <span class="mockup-chart"></span>
+                <div class="mockup-rows">
+                  <span class="mockup-row"></span><span class="mockup-row"></span><span class="mockup-row"></span>
+                </div>
+              </div>
+            </div>
+            <div class="floating-note">
+              <span class="floating-note-icon"><lucide-icon [img]="icons.CalendarDays" [size]="17" /></span>
+              <span><strong>Agenda organisé</strong><small>Vue d’ensemble du cabinet</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-section" aria-label="La plateforme en bref">
+      <div class="container stats-row">
+        @for (stat of stats; track stat.label) {
+          <div class="stat-item">
+            <div class="stat-value">{{ stat.value }}</div>
+            <div class="stat-label">{{ stat.label }}</div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="features-section" id="features">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">FONCTIONNALITÉS</div>
+          <h2 class="section-title">Tout ce dont votre cabinet a besoin</h2>
+          <p class="section-subtitle">Les outils essentiels de gestion réunis dans une seule plateforme.</p>
+        </div>
+        <div class="features-grid">
+          @for (feature of features; track feature.title) {
+            <article class="feature-card">
+              <div class="feature-icon"><lucide-icon [img]="feature.icon" [size]="22" /></div>
+              <h3 class="feature-title">{{ feature.title }}</h3>
+              <p class="feature-description">{{ feature.description }}</p>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="modules-section" id="modules">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">MODULES</div>
+          <h2 class="section-title">Une gestion complète du cabinet</h2>
+          <p class="section-subtitle">Accédez rapidement aux principaux espaces de travail.</p>
+        </div>
+        <div class="modules-grid">
+          @for (module of modules; track module.title) {
+            <article class="module-card" [ngClass]="'module-card--' + module.color">
+              <span class="module-icon"><lucide-icon [img]="module.icon" [size]="20" /></span>
+              <span class="module-content">
+                <strong class="module-title">{{ module.title }}</strong>
+                <small class="module-desc">{{ module.description }}</small>
+              </span>
+              <lucide-icon class="module-arrow" [img]="icons.ChevronRight" [size]="16" />
+            </article>
+          }
+        </div>
+        <div class="modules-cta">
+          <a routerLink="/login" class="btn btn-primary btn-lg">
+          Explorer la plateforme <lucide-icon [img]="icons.ArrowRight" [size]="15" />
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="why-section">
+      <div class="container why-inner">
+        <div class="why-content">
+          <div class="section-eyebrow">POURQUOI DENTALCARE</div>
+          <h2 class="section-title left">Conçu pour le quotidien des cabinets dentaires</h2>
+          <div class="why-list">
+            <article class="why-item">
+              <span class="why-icon"><lucide-icon [img]="icons.Zap" [size]="20" /></span>
+              <div><h3>Simple à prendre en main</h3><p>Une interface claire pour retrouver rapidement les informations utiles.</p></div>
+            </article>
+            <article class="why-item">
+              <span class="why-icon"><lucide-icon [img]="icons.Shield" [size]="20" /></span>
+              <div><h3>Une vision centralisée</h3><p>Reliez les dossiers patients, l’agenda, les soins et la facturation.</p></div>
+            </article>
+            <article class="why-item">
+              <span class="why-icon"><lucide-icon [img]="icons.Wallet" [size]="20" /></span>
+              <div><h3>Adapté au cabinet</h3><p>Suivez les activités et montants en FCFA, dans une interface en français.</p></div>
+            </article>
+          </div>
+        </div>
+        <div class="why-visual" aria-hidden="true">
+          <div class="why-card why-card--1">
+            <span class="why-card-icon"><lucide-icon [img]="icons.Users" [size]="22" /></span>
+            <strong class="why-card-value">Patients</strong><span class="why-card-label">Dossiers centralisés</span>
+          </div>
+          <div class="why-card why-card--2">
+            <span class="why-card-icon"><lucide-icon [img]="icons.CalendarDays" [size]="22" /></span>
+            <strong class="why-card-value">Agenda</strong><span class="why-card-label">Rendez-vous organisés</span>
+          </div>
+          <div class="why-card why-card--3">
+            <span class="why-card-icon"><lucide-icon [img]="icons.BarChart3" [size]="22" /></span>
+            <strong class="why-card-value">Rapports</strong><span class="why-card-label">Activité consultable</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="testimonials-section" id="testimonials">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">TÉMOIGNAGES</div>
+          <h2 class="section-title">Pensé pour les équipes dentaires</h2>
+        </div>
+        <div class="testimonials-grid">
+          @for (testimonial of testimonials; track testimonial.name) {
+            <article class="testimonial-card">
+              <div class="testimonial-stars" aria-label="5 étoiles">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <lucide-icon class="star" [img]="icons.Star" [size]="14" />
+                }
+              </div>
+              <blockquote class="testimonial-quote">« {{ testimonial.quote }} »</blockquote>
+              <div class="testimonial-author">
+                <span class="testimonial-avatar">{{ testimonial.initials }}</span>
+                <span><strong class="testimonial-name">{{ testimonial.name }}</strong><small class="testimonial-role">{{ testimonial.role }}</small></span>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-card">
+          <div class="cta-bg"></div>
+          <div class="cta-content">
+            <h2 class="cta-title">Prêt à mieux organiser votre cabinet ?</h2>
+            <p class="cta-subtitle">Découvrez les outils DentalCare et centralisez les tâches quotidiennes de votre équipe.</p>
+            <div class="cta-actions">
+              <a routerLink="/login" class="btn btn-white btn-lg">Accéder à DentalCare <lucide-icon [img]="icons.ArrowRight" [size]="15" /></a>
+              <a href="mailto:contact@dentalcare.sn" class="btn btn-outline-white btn-lg">Nous contacter</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="landing-footer" id="contact">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand">
+            <span class="brand-mark"><lucide-icon [img]="icons.Smile" [size]="20" /></span>
+            <span class="brand-text"><span class="brand-name">dental<span>care</span></span><span class="brand-sub">MANAGEMENT</span></span>
+          </div>
+          <p class="footer-tagline">La gestion sereine de votre cabinet dentaire, au Sénégal et en Afrique de l’Ouest.</p>
+        </div>
+        <nav class="footer-col" aria-label="Liens produit">
+          <h3>Produit</h3>
+          <button type="button" (click)="scrollTo('features')">Fonctionnalités</button>
+          <button type="button" (click)="scrollTo('modules')">Modules</button>
+          <button type="button" (click)="scrollTo('testimonials')">Témoignages</button>
+        </nav>
+        <div class="footer-col">
+          <h3>Accès</h3>
+          <a routerLink="/login">Se connecter</a>
+          <a routerLink="/login">Découvrir l’application</a>
+        </div>
+        <div class="footer-col">
+          <h3>Contact</h3>
+          <a class="footer-contact" href="mailto:contact@dentalcare.sn"><lucide-icon [img]="icons.Mail" [size]="14" />contact@dentalcare.sn</a>
+          <a class="footer-contact" href="tel:+221338000000"><lucide-icon [img]="icons.Phone" [size]="14" />+221 33 800 00 00</a>
+          <span class="footer-contact"><lucide-icon [img]="icons.MapPin" [size]="14" />Dakar, Sénégal</span>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 DentalCare Management. Tous droits réservés.</p>
+        <span>Gestion dentaire · Sénégal</span>
+      </div>
+    </div>
+  </footer>
+</div>

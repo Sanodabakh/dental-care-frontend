@@ -1,0 +1,76 @@
+<div class="stock-movement">
+  <header class="form-header">
+    <button type="button" (click)="cancel()" class="back-btn" aria-label="Retour au stock">
+      <svg lucideArrowLeft [size]="16"></svg>
+    </button>
+    <div>
+      <h1>Mouvement de stock</h1>
+      <p>Entrée, sortie ou ajustement</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="dc-card loading-state">Chargement du produit...</div>
+  } @else if (success()) {
+    <div class="dc-card success-card">
+      <div class="success-icon">✓</div>
+      <h2>Mouvement enregistré</h2>
+      <p>Le stock a été mis à jour avec succès.</p>
+      <a routerLink="/inventory" class="dc-btn-primary">Retour au stock</a>
+    </div>
+  } @else {
+    <form (ngSubmit)="save()" class="dc-card">
+      @if (product(); as currentProduct) {
+        <div class="product-info">
+          <span class="code-badge">{{ currentProduct.code }}</span>
+          <strong>{{ currentProduct.name }}</strong>
+          <span class="qty-info">Stock actuel : <strong>{{ currentProduct.quantity }}</strong></span>
+        </div>
+      }
+
+      <div class="type-selector">
+        <button type="button" [class.active]="type() === 'ENTREE'"
+          (click)="setType('ENTREE')" class="type-btn type-btn--in">
+          <svg lucideArrowUp [size]="16"></svg> Entrée
+        </button>
+        <button type="button" [class.active]="type() === 'SORTIE'"
+          (click)="setType('SORTIE')" class="type-btn type-btn--out">
+          <svg lucideArrowDown [size]="16"></svg> Sortie
+        </button>
+        <button type="button" [class.active]="type() === 'AJUSTEMENT'"
+          (click)="setType('AJUSTEMENT')" class="type-btn type-btn--adj">
+          Ajustement
+        </button>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="movement-quantity">
+          {{ type() === 'AJUSTEMENT' ? 'Nouvelle quantité en stock' : 'Quantité' }}
+        </label>
+        <input id="movement-quantity" name="quantity" type="number"
+          [min]="type() === 'AJUSTEMENT' ? 0 : 1"
+          [ngModel]="quantity()" (ngModelChange)="updateQuantity($event)" class="dc-input" />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="movement-reason">Motif</label>
+        <textarea id="movement-reason" name="reason" [ngModel]="reason()"
+          (ngModelChange)="reason.set($event)" rows="3" class="dc-input form-textarea"
+          placeholder="Raison du mouvement..."></textarea>
+      </div>
+
+      @if (error()) {
+        <div class="error-banner" role="alert"><svg lucideX [size]="16"></svg>{{ error() }}</div>
+      }
+
+      <div class="form-actions">
+        <button type="button" (click)="cancel()" class="dc-btn-secondary">Annuler</button>
+        <button type="submit" [disabled]="saving() || !product()" class="dc-btn-primary">
+          @if (saving()) { <span class="spinner-sm"></span> }
+          <svg lucideSave [size]="14"></svg>
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  }
+</div>

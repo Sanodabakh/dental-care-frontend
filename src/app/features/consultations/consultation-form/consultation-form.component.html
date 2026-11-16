@@ -1,0 +1,159 @@
+<div class="consultation-form">
+
+  <!-- HEADER -->
+  <header class="consultation-form__header">
+    <button routerLink="/consultations" class="back-btn">
+      <svg lucideArrowLeft [size]="16"></svg>
+    </button>
+    <div>
+      <h1 class="consultation-form__title">Nouvelle consultation</h1>
+      <p class="consultation-form__subtitle">Sélectionnez un patient par son numéro de référence</p>
+    </div>
+  </header>
+
+  <!-- ÉTAPE 1 : SÉLECTION PATIENT -->
+  @if (!selectedPatient() && !saved()) {
+    <div class="dc-card search-card">
+      <h2 class="search-card__title">
+        <svg lucideSearch [size]="16" class="text-primary"></svg>
+        Rechercher un patient
+      </h2>
+      <p class="search-card__hint">Saisissez le numéro de référence du patient (ex: PAT-2026-0001)</p>
+
+      <div class="search-row">
+        <div class="search-input-wrapper">
+          <svg lucideSearch [size]="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none"></svg>
+          <input
+            [value]="patientNumberInput()"
+            (input)="patientNumberInput.set($any($event.target).value)"
+            (keyup.enter)="searchPatient()"
+            placeholder="PAT-2026-0001"
+            class="dc-input pl-9 font-mono uppercase" />
+        </div>
+        <button (click)="searchPatient()" [disabled]="searching()" class="dc-btn-primary">
+          @if (searching()) {
+            <span class="spinner-sm"></span>
+          } @else {
+            <svg lucideSearch [size]="14"></svg>
+          }
+          Rechercher
+        </button>
+      </div>
+
+      @if (searchError()) {
+        <div class="search-error">
+          {{ searchError() }}
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ÉTAPE 2 : PATIENT TROUVÉ -->
+  @if (selectedPatient(); as patient) {
+    @if (!saved()) {
+      <div class="dc-card patient-card">
+        <div class="patient-card__header">
+          <div class="patient-info">
+            <div class="patient-avatar">{{ initials(patient) }}</div>
+            <div>
+              <h2>{{ patient.firstName }} {{ patient.lastName }}</h2>
+              <p class="patient-ref">{{ patient.patientNumber }}</p>
+              <p class="patient-meta">
+                {{ patient.phone || '—' }} · Inscrit le {{ patient.createdAt | dateFr }}
+              </p>
+            </div>
+          </div>
+          <button (click)="reset()" class="dc-btn-secondary">Changer de patient</button>
+        </div>
+      </div>
+
+      <!-- FORMULAIRE CONSULTATION -->
+      <form [formGroup]="form" class="consultation-form__body">
+
+        <section class="dc-card form-section">
+          <h3 class="form-section__title">
+            <svg lucideStethoscope [size]="15" class="text-primary"></svg>
+            Examen clinique
+          </h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label">Symptômes</label>
+              <textarea formControlName="symptoms" rows="3" class="dc-input form-textarea"
+                placeholder="Douleur, sensibilité, gonflement..."></textarea>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Examen clinique</label>
+              <textarea formControlName="clinicalExam" rows="3" class="dc-input form-textarea"
+                placeholder="Observations cliniques..."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="dc-card form-section">
+          <h3 class="form-section__title">
+            <svg lucideFileText [size]="15" class="text-primary"></svg>
+            Diagnostic
+          </h3>
+          <div class="form-field">
+            <label class="form-label">Diagnostic <span class="required">*</span></label>
+            <textarea formControlName="diagnosis" rows="3" class="dc-input form-textarea"
+              placeholder="Diagnostic principal..."></textarea>
+            @if (form.get('diagnosis')?.invalid && form.get('diagnosis')?.touched) {
+              <p class="form-error">Le diagnostic est requis</p>
+            }
+          </div>
+        </section>
+
+        <section class="dc-card form-section">
+          <h3 class="form-section__title">
+            <svg lucideHeartPulse [size]="15" class="text-primary"></svg>
+            Plan de traitement
+          </h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label">Plan de traitement</label>
+              <textarea formControlName="treatmentPlan" rows="3" class="dc-input form-textarea"
+                placeholder="Actes prévus..."></textarea>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Observations</label>
+              <textarea formControlName="observations" rows="3" class="dc-input form-textarea"
+                placeholder="Notes supplémentaires..."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button type="button" (click)="save(true)" [disabled]="saving()" class="dc-btn-secondary">
+            <svg lucideSave [size]="14"></svg>
+            Enregistrer en brouillon
+          </button>
+          <button type="button" (click)="save(false)" [disabled]="saving() || form.invalid" class="dc-btn-primary">
+            @if (saving()) {
+              <span class="spinner-sm"></span>
+            } @else {
+              <svg lucideCheck [size]="14"></svg>
+            }
+            Valider la consultation
+          </button>
+        </div>
+      </form>
+    } @else {
+      <!-- SUCCÈS -->
+      <div class="dc-card success-card">
+        <div class="success-icon">
+          <svg lucideCheck [size]="28"></svg>
+        </div>
+        <h2>Consultation enregistrée</h2>
+        <p>La consultation pour <strong>{{ patient.firstName }} {{ patient.lastName }}</strong> ({{ patient.patientNumber }}) a été enregistrée avec succès.</p>
+        <div class="success-actions">
+          <button (click)="goToOdontogram()" class="dc-btn-primary">
+            <svg lucideStethoscope [size]="14"></svg>
+            Ouvrir l'odontogramme
+          </button>
+          <button (click)="reset()" class="dc-btn-secondary">Nouvelle consultation</button>
+        </div>
+      </div>
+    }
+  }
+</div>
