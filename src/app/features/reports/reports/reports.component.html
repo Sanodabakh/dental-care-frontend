@@ -8,8 +8,10 @@
       <button type="button" (click)="exportExcel()" class="dc-btn-secondary" [disabled]="!report()">
         <svg lucideFileSpreadsheet [size]="14"></svg> CSV Excel
       </button>
-      <button type="button" (click)="exportPdf()" class="dc-btn-primary" [disabled]="!report()">
-        <svg lucideDownload [size]="14"></svg> PDF
+      <button type="button" (click)="exportPdf()" class="dc-btn-primary"
+        [disabled]="!report() || downloading()">
+        <svg lucideDownload [size]="14"></svg>
+        {{ downloading() ? 'Génération...' : 'PDF' }}
       </button>
     </div>
   </header>

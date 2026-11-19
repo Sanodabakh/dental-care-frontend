@@ -30,13 +30,13 @@ export class ToothSvgComponent {
       case 'SAINE': return '#fff';
       case 'CARIE': return '#f4c2b9';
       case 'ABSENTE':
-      case 'EXTRAITE': return '#e7ecee';
+      case 'EXTRACTEE': return '#e7ecee';
       case 'OBTURATION': return '#a9dbd2';
       case 'COURONNE': return '#f7dfa0';
       case 'IMPLANT': return '#b9def2';
-      case 'ENDO': return '#d9c7f5';
+      case 'DEVIALISEE': return '#d9c7f5';
+      case 'EXTRACTION_INDIQUEE': return '#f4c89e';
       case 'FRACTURE': return '#e2a2a2';
-      case 'MOBILITE': return '#f4c89e';
       case 'PROTHESE': return '#b8e4e9';
       default: return '#fff';
     }

@@ -35,8 +35,8 @@
       <div class="form-field">
         <label class="form-label">Moyen de paiement</label>
         <select formControlName="paymentMethod" class="dc-input">
-          @for (method of paymentMethods; track method) {
-            <option [value]="method">{{ method }}</option>
+          @for (method of paymentMethods; track method.value) {
+            <option [value]="method.value">{{ method.label }}</option>
           }
         </select>
       </div>

@@ -1,92 +1,48 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable, of, delay, throwError } from 'rxjs';
+import { Observable, catchError, map, switchMap, tap, throwError } from 'rxjs';
+import { ApiService } from '../../../core/services/api.service';
+import { apiError } from '../../../core/services/api-error';
 import { CashMovement, CashSession } from '../../../shared/models/cash-register.model';
-
-const STORAGE_KEY = 'dc_cash_sessions';
 
 @Injectable({ providedIn: 'root' })
 export class CashRegisterService {
-  private readonly _sessions = signal<CashSession[]>(this.loadFromStorage());
+  private readonly _sessions = signal<CashSession[]>([]);
   readonly sessions = this._sessions.asReadonly();
 
+  constructor(private api: ApiService) {}
+
+  refresh(): Observable<CashSession[]> {
+    return this.api.getPage<CashSession>('/cash-sessions', { size: 100 }).pipe(
+      map(page => page.items),
+      tap(sessions => this._sessions.set(sessions)),
+      catchError(error => throwError(() => apiError(error))),
+    );
+  }
+
   getCurrentSession(): CashSession | null {
-    return this._sessions().find(s => s.status === 'OUVERTE') ?? null;
+    return this._sessions().find(session => session.status === 'OUVERTE') ?? null;
   }
 
   openSession(openingAmount: number): Observable<CashSession> {
-    if (this.getCurrentSession()) {
-      return throwError(() => new Error('Une session est déjà ouverte'));
-    }
-    if (!Number.isFinite(openingAmount) || openingAmount < 0) {
-      return throwError(() => new Error('Le montant d’ouverture doit être positif ou nul.'));
-    }
-
-    const session: CashSession = {
-      id: this.generateUuid(),
-      openedAt: new Date().toISOString(),
-      openedBy: 'Dr. Omar Fall',
-      openingAmountFcfa: openingAmount,
-      status: 'OUVERTE',
-    };
-    this._sessions.update(list => [session, ...list]);
-    this.saveToStorage();
-    return of(session).pipe(delay(300));
+    return this.api.post<CashSession>('/cash-sessions/open', { openingAmountFcfa: openingAmount }).pipe(
+      switchMap(session => this.refresh().pipe(map(() => session))),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
   closeSession(closingAmount: number): Observable<CashSession> {
     const current = this.getCurrentSession();
-    if (!current) return throwError(() => new Error('Aucune session ouverte'));
-    if (!Number.isFinite(closingAmount) || closingAmount < 0) {
-      return throwError(() => new Error('Le montant de clôture doit être positif ou nul.'));
+    if (!current) {
+      return throwError(() => new Error('Aucune session ouverte'));
     }
-
-    // Calcul du montant attendu = ouverture + mouvements
-    const expected = current.openingAmountFcfa + this.calculateMovements(current.id);
-
-    const updated: CashSession = {
-      ...current,
-      closedAt: new Date().toISOString(),
-      closedBy: 'Dr. Omar Fall',
-      closingAmountFcfa: closingAmount,
-      expectedAmountFcfa: expected,
-      differenceFcfa: closingAmount - expected,
-      status: 'FERMEE',
-    };
-
-    this._sessions.update(list => list.map(s => s.id === current.id ? updated : s));
-    this.saveToStorage();
-    return of(updated).pipe(delay(300));
+    return this.api.post<CashSession>(`/cash-sessions/${current.id}/close`, { closingAmountFcfa: closingAmount }).pipe(
+      switchMap(session => this.refresh().pipe(map(() => session))),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
   getMovements(sessionId: string): Observable<CashMovement[]> {
-    const key = `dc_cash_movements_${sessionId}`;
-    const raw = localStorage.getItem(key);
-    const items: CashMovement[] = raw ? JSON.parse(raw) : [];
-    return of(items).pipe(delay(150));
-  }
-
-  private calculateMovements(sessionId: string): number {
-    const key = `dc_cash_movements_${sessionId}`;
-    const raw = localStorage.getItem(key);
-    if (!raw) return 0;
-    const items: CashMovement[] = JSON.parse(raw);
-    return items.reduce((sum, m) => m.type === 'ENTREE' ? sum + m.amountFcfa : sum - m.amountFcfa, 0);
-  }
-
-  private generateUuid(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  }
-
-  private loadFromStorage(): CashSession[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  }
-
-  private saveToStorage(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._sessions()));
+    return this.api.get<CashMovement[]>(`/cash-sessions/${sessionId}/movements`)
+      .pipe(catchError(error => throwError(() => apiError(error))));
   }
 }

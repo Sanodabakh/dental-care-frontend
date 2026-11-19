@@ -1,79 +1,81 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of, delay, throwError } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { ApiService } from '../../core/services/api.service';
+import { apiError } from '../../core/services/api-error';
+import { PatientService } from '../patients/patient.service';
 import {
   Consultation, ConsultationCreateDto, ConsultationStatus,
 } from '../../shared/models/consultation.model';
 
-const STORAGE_KEY = 'dc_consultations';
+interface ConsultationDto {
+  id: string;
+  patientId: string;
+  dentistId: string;
+  appointmentId?: string;
+  consultationDate: string;
+  symptoms?: string;
+  clinicalExam?: string;
+  diagnosis?: string;
+  treatmentPlan?: string;
+  observations?: string;
+  status: ConsultationStatus;
+  validatedAt?: string;
+  createdAt: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ConsultationService {
-  private readonly _consultations = signal<Consultation[]>(this.loadFromStorage());
-  readonly consultations = this._consultations.asReadonly();
+  constructor(private api: ApiService, private patientService: PatientService) {}
 
   list(params?: { patientId?: string }): Observable<Consultation[]> {
-    let items = [...this._consultations()];
-    if (params?.patientId) {
-      items = items.filter(c => c.patientId === params.patientId);
-    }
-    items.sort((a, b) => b.consultationDate.localeCompare(a.consultationDate));
-    return of(items).pipe(delay(200));
+    return forkJoin({
+      page: this.api.getPage<ConsultationDto>('/consultations', {
+        patientId: params?.patientId,
+        size: 1000,
+      }),
+      patients: this.patientService.listAll().pipe(catchError(() => of([]))),
+    }).pipe(
+      map(({ page, patients }) => {
+        const byId = new Map(patients.map(patient => [patient.id, patient] as const));
+        return page.items.map(item => {
+          const patient = byId.get(item.patientId);
+          return {
+            ...item,
+            patientName: patient ? `${patient.firstName} ${patient.lastName}` : '',
+            patientNumber: patient?.patientNumber ?? '',
+            dentistName: '',
+          } as Consultation;
+        });
+      }),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
-  getById(id: string): Observable<Consultation | undefined> {
-    return of(this._consultations().find(c => c.id === id)).pipe(delay(150));
+  getById(id: string): Observable<Consultation> {
+    return this.api.get<ConsultationDto>(`/consultations/${id}`).pipe(
+      map(item => ({ ...item, patientName: '', patientNumber: '', dentistName: '' } as Consultation)),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
   create(dto: ConsultationCreateDto): Observable<Consultation> {
-    const newConsultation: Consultation = {
-      id: this.generateUuid(),
+    return this.api.post<ConsultationDto>('/consultations', {
       patientId: dto.patientId,
-      patientNumber: dto.patientNumber,
-      patientName: '',
-      dentistId: dto.dentistId,
-      dentistName: '',
-      consultationDate: new Date().toISOString(),
       symptoms: dto.symptoms,
       clinicalExam: dto.clinicalExam,
       diagnosis: dto.diagnosis,
       treatmentPlan: dto.treatmentPlan,
       observations: dto.observations,
-      status: 'BROUILLON',
-      createdAt: new Date().toISOString(),
-    };
-    this._consultations.update(list => [newConsultation, ...list]);
-    this.saveToStorage();
-    return of(newConsultation).pipe(delay(300));
+    }).pipe(
+      map(item => ({ ...item, patientName: '', patientNumber: '', dentistName: '' } as Consultation)),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
   validate(id: string): Observable<Consultation> {
-    const existing = this._consultations().find(c => c.id === id);
-    if (!existing) return throwError(() => new Error('Consultation introuvable'));
-
-    const updated: Consultation = {
-      ...existing,
-      status: 'VALIDEE' as ConsultationStatus,
-      validatedAt: new Date().toISOString(),
-    };
-    this._consultations.update(list => list.map(c => c.id === id ? updated : c));
-    this.saveToStorage();
-    return of(updated).pipe(delay(200));
-  }
-
-  private generateUuid(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  }
-
-  private loadFromStorage(): Consultation[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  }
-
-  private saveToStorage(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._consultations()));
+    return this.api.post<ConsultationDto>(`/consultations/${id}/validate`, {}).pipe(
+      map(item => ({ ...item, patientName: '', patientNumber: '', dentistName: '' } as Consultation)),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 }

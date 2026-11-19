@@ -12,7 +12,7 @@ import {
   LucideSearch,
 } from '@lucide/angular';
 import { ProductService } from '../services/product.service';
-import { Product } from '../../../shared/models/product.model';
+import { Product, StockStatus } from '../../../shared/models/product.model';
 import { FcfaPipe } from '../../../shared/pipes/fcfa.pipe';
 
 @Component({
@@ -66,12 +66,17 @@ export class StockListComponent implements OnInit {
   }
 
   statusLabel(product: Product): string {
-    const labels = { OK: 'OK', ALERTE: 'Stock bas', RUPTURE: 'Rupture', PERIME: 'Périmé' };
+    const labels: Record<StockStatus, string> = {
+      OK: 'OK',
+      ALERTE: 'Stock bas',
+      RUPTURE: 'Rupture',
+      PERIME: 'Périmé',
+    };
     return labels[this.service.getStatus(product)];
   }
 
   statusClass(product: Product): string {
-    const classes = {
+    const classes: Record<StockStatus, string> = {
       OK: 'dc-badge-success',
       ALERTE: 'dc-badge-warning',
       RUPTURE: 'dc-badge-danger',

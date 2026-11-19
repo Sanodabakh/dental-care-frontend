@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   LucideArchive as Archive,
   LucideChevronLeft as ChevronLeft,
@@ -28,18 +28,17 @@ import { LucideIconComponent } from '../../../shared/components/lucide-icon/luci
 })
 export class PatientListComponent implements OnInit {
   private readonly patientService = inject(PatientService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly icons = {
     Search, Plus, MoreHorizontal, Filter, ChevronLeft, ChevronRight,
     Edit, Eye, Archive, Download,
   };
 
-  // ============ ÉTATS ============
   readonly loading = signal(true);
   readonly patients = signal<Patient[]>([]);
   readonly total = signal(0);
 
-  // ============ FILTRES ============
   readonly search = signal('');
   readonly status = signal<PatientStatus | 'ALL'>('ALL');
   readonly page = signal(0);
@@ -50,7 +49,20 @@ export class PatientListComponent implements OnInit {
   readonly pageEnd = computed(() => Math.min((this.page() + 1) * this.size(), this.total()));
 
   ngOnInit(): void {
+    const initialSearch = this.route.snapshot.queryParamMap.get('search');
+    if (initialSearch) {
+      this.search.set(initialSearch);
+    }
     this.load();
+
+    this.route.queryParamMap.subscribe(params => {
+      const value = params.get('search') ?? '';
+      if (value !== this.search()) {
+        this.search.set(value);
+        this.page.set(0);
+        this.load();
+      }
+    });
   }
 
   load(): void {

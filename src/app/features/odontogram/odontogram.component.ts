@@ -38,17 +38,17 @@ export class OdontogramComponent implements OnInit {
   readonly newObservation = signal('');
 
   readonly conditions: { value: ToothCondition; label: string; color: string }[] = [
-    { value: 'SAINE',     label: 'Saine',       color: '#FFFFFF' },
-    { value: 'CARIE',     label: 'Carie',       color: '#f4c2b9' },
-    { value: 'OBTURATION',label: 'Obturation',  color: '#a9dbd2' },
-    { value: 'COURONNE',  label: 'Couronne',    color: '#f7dfa0' },
-    { value: 'ENDO',      label: 'Endodontie',  color: '#d9c7f5' },
-    { value: 'IMPLANT',   label: 'Implant',     color: '#c2e8de' },
-    { value: 'ABSENTE',   label: 'Absente',     color: '#d1d8dc' },
-    { value: 'EXTRAITE',  label: 'Extraite',    color: '#b8c2c8' },
-    { value: 'FRACTURE',  label: 'Fracture',    color: '#f1b3ad' },
-    { value: 'MOBILITE',  label: 'Mobilité',    color: '#f4c89e' },
-    { value: 'PROTHESE',  label: 'Prothèse',    color: '#b8e4e9' },
+    { value: 'SAINE', label: 'Saine', color: '#FFFFFF' },
+    { value: 'CARIE', label: 'Carie', color: '#f4c2b9' },
+    { value: 'OBTURATION', label: 'Obturation', color: '#a9dbd2' },
+    { value: 'COURONNE', label: 'Couronne', color: '#f7dfa0' },
+    { value: 'DEVIALISEE', label: 'Dévitalisée', color: '#d9c7f5' },
+    { value: 'EXTRACTION_INDIQUEE', label: 'Extraction indiquée', color: '#f1b3ad' },
+    { value: 'EXTRACTEE', label: 'Extraite', color: '#b8c2c8' },
+    { value: 'IMPLANT', label: 'Implant', color: '#c2e8de' },
+    { value: 'PROTHESE', label: 'Prothèse', color: '#b8e4e9' },
+    { value: 'FRACTURE', label: 'Fracture', color: '#f1b3ad' },
+    { value: 'ABSENTE', label: 'Absente', color: '#d1d8dc' },
   ];
 
   readonly upperRight = ['18','17','16','15','14','13','12','11'];
@@ -174,7 +174,7 @@ export class OdontogramComponent implements OnInit {
       toothNumber: tooth,
       condition: this.newCondition(),
       observation: this.newObservation(),
-      createdBy: 'Dr. Omar Fall',
+      createdBy: '',
     }).subscribe(() => {
       this.saving.set(false);
       this.loadOdontogram(patient.id);

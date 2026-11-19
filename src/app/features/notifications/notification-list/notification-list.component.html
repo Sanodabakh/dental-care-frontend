@@ -41,7 +41,7 @@
                 <span class="channel-badge"
                   [class.channel-badge--sms]="notification.channel === 'SMS'"
                   [class.channel-badge--whatsapp]="notification.channel === 'WHATSAPP'">
-                  {{ notification.channel }}
+                  {{ channelLabel(notification.channel) }}
                 </span>
               </td>
               <td class="message-cell" [title]="notification.message">{{ notification.message }}</td>
@@ -55,7 +55,7 @@
               </td>
               <td>
                 <div class="row-actions">
-                  @if (notification.status === 'ECHEC') {
+                  @if (notification.status === 'EN_ATTENTE') {
                     <button type="button" (click)="retry(notification)" class="row-btn" title="Réessayer">
                       <svg lucideRefreshCw [size]="14"></svg>
                     </button>

@@ -32,8 +32,8 @@ export class LoginComponent {
     private router: Router,
   ) {
     this.form = this.fb.group({
-      email: ['admin@dentalcare.sn', [Validators.required, Validators.email]],
-      password: ['admin123', [Validators.required, Validators.minLength(6)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
@@ -57,7 +57,7 @@ export class LoginComponent {
       },
       error: (err: Error) => {
         this.loading.set(false);
-        this.error.set(err.message || 'Une erreur est survenue');
+        this.error.set(err.message || 'Email ou mot de passe incorrect.');
       },
     });
   }

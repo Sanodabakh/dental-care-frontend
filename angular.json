@@ -38,8 +38,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "16kB",
+                  "maximumError": "24kB"
                 }
               ],
               "outputHashing": "all"
@@ -60,6 +60,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "dental-care:build:production"

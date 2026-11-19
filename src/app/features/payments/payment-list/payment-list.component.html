@@ -60,13 +60,17 @@
                 <td>{{ methodLabel(payment.paymentMethod) }}</td>
                 <td class="text-right font-semibold">{{ payment.amountFcfa | fcfa }}</td>
                 <td>
-                  @if (payment.invoiceId) {
-                    <div class="flex justify-end">
+                  <div class="flex justify-end gap-1">
+                    @if (payment.invoiceId) {
                       <a [routerLink]="['/billing', payment.invoiceId]" class="row-btn" title="Voir la facture">
                         <lucide-icon [img]="icons.Eye" [size]="15" />
                       </a>
-                    </div>
-                  }
+                    }
+                    <button type="button" class="row-btn" title="Télécharger le reçu PDF"
+                      (click)="downloadReceipt(payment)" [disabled]="downloadingId() === payment.id">
+                      <lucide-icon [img]="icons.Download" [size]="15" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             }

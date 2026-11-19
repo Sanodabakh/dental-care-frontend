@@ -13,7 +13,7 @@
     <div class="dc-card success-card">
       <div class="success-icon"><svg lucideCheck [size]="28"></svg></div>
       <h2>Notification enregistrée</h2>
-      <p>{{ sentType() === 'CONFIRMATION' ? 'Confirmation' : 'Message' }} simulé pour le patient.</p>
+      <p>{{ sentType() === 'CONFIRMATION_RDV' ? 'Confirmation' : 'Message' }} simulé pour le patient.</p>
       <div class="success-actions">
         <button type="button" (click)="reset()" class="dc-btn-primary">Nouvelle notification</button>
         <a routerLink="/notifications" class="dc-btn-secondary">Voir la liste</a>
@@ -61,8 +61,8 @@
             <label class="form-label" for="notification-channel">Canal</label>
             <select id="notification-channel" [ngModel]="channel()" (ngModelChange)="onChannelChange($event)"
               class="dc-input">
-              @for (item of channels; track item) {
-                <option [value]="item">{{ item }}</option>
+              @for (item of channels; track item.value) {
+                <option [value]="item.value">{{ item.label }}</option>
               }
             </select>
           </div>

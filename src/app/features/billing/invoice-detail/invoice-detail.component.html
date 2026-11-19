@@ -17,9 +17,9 @@
           <a [routerLink]="['/payments/new']" [queryParams]="{ invoiceId: current.id }"
             class="dc-btn-primary">Enregistrer un paiement</a>
         }
-        <button type="button" class="dc-btn-secondary" (click)="print()">
-          <lucide-icon [img]="icons.Printer" [size]="16" />
-          Imprimer
+        <button type="button" class="dc-btn-secondary" (click)="downloadPdf()" [disabled]="downloading()">
+          <lucide-icon [img]="icons.Download" [size]="16" />
+          {{ downloading() ? 'Génération...' : 'Télécharger PDF' }}
         </button>
       </div>
     }

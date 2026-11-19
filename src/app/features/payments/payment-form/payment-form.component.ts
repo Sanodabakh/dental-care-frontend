@@ -5,7 +5,7 @@ import { LucideArrowLeft as ArrowLeft, LucideSave as Save } from '@lucide/angula
 import { InvoiceService } from '../../billing/invoice.service';
 import { PaymentService } from '../services/payment.service';
 import { Invoice } from '../../../shared/models/invoice.model';
-import { PaymentMethod } from '../../../shared/models/payment.model';
+import { PaymentMethod, PAYMENT_METHOD_LABELS } from '../../../shared/models/payment.model';
 import { FcfaPipe } from '../../../shared/pipes/fcfa.pipe';
 import { LucideIconComponent } from '../../../shared/components/lucide-icon/lucide-icon.component';
 
@@ -32,14 +32,9 @@ export class PaymentFormComponent implements OnInit {
   readonly saving = signal(false);
   readonly error = signal('');
 
-  readonly methods: Array<{ value: PaymentMethod; label: string }> = [
-    { value: 'ESPECES', label: 'Espèces' },
-    { value: 'WAVE', label: 'Wave' },
-    { value: 'ORANGE_MONEY', label: 'Orange Money' },
-    { value: 'VIREMENT', label: 'Virement bancaire' },
-    { value: 'CARTE', label: 'Carte bancaire' },
-    { value: 'AUTRE', label: 'Autre' },
-  ];
+  readonly methods: Array<{ value: PaymentMethod; label: string }> =
+    (Object.entries(PAYMENT_METHOD_LABELS) as Array<[PaymentMethod, string]>)
+      .map(([value, label]) => ({ value, label }));
 
   canPay(): boolean {
     const status = this.invoice()?.status;

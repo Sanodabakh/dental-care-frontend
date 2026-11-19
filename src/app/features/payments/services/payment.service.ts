@@ -1,96 +1,105 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of, delay, map, switchMap, tap, throwError } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { HttpResponse } from '@angular/common/http';
+import { Observable, catchError, forkJoin, map, of, switchMap, throwError } from 'rxjs';
+import { ApiService } from '../../../core/services/api.service';
+import { apiError } from '../../../core/services/api-error';
+import { PatientService } from '../../patients/patient.service';
 import { Payment, PaymentCreateDto } from '../../../shared/models/payment.model';
-import { InvoiceService } from '../../billing/invoice.service';
 
-const STORAGE_KEY = 'dc_payments';
+interface PaymentDto {
+  id: string;
+  invoiceId: string;
+  patientId: string;
+  amountFcfa: number;
+  paymentMethod: Payment['paymentMethod'];
+  paymentDate: string;
+  reference?: string;
+  receiptNumber: string;
+  createdBy: string;
+}
+
+interface InvoiceRef {
+  id: string;
+  invoiceNumber: string;
+  patientId: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
-  private readonly _payments = signal<Payment[]>(this.loadFromStorage());
-  readonly payments = this._payments.asReadonly();
+  constructor(private api: ApiService, private patientService: PatientService) {}
 
-  constructor(private invoiceService: InvoiceService) {}
-
-  list(params?: { search?: string }): Observable<Payment[]> {
-    let items = [...this._payments()];
-    if (params?.search) {
-      const q = params.search.toLowerCase();
-      items = items.filter(p =>
-        p.receiptNumber.toLowerCase().includes(q) ||
-        p.patientName?.toLowerCase().includes(q) ||
-        p.invoiceNumber?.toLowerCase().includes(q),
-      );
-    }
-    items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    return of(items).pipe(delay(200));
-  }
-
-  create(dto: PaymentCreateDto): Observable<Payment> {
-    return this.invoiceService.getById(dto.invoiceId).pipe(
-      switchMap(inv => {
-        if (!inv) return throwError(() => new Error('Facture introuvable.'));
-        if (inv.status === 'BROUILLON') {
-          return throwError(() => new Error('La facture doit être validée avant paiement.'));
-        }
-        if (inv.status === 'ANNULEE') {
-          return throwError(() => new Error('Cette facture est annulée.'));
-        }
-        if (!Number.isFinite(dto.amountFcfa) || dto.amountFcfa <= 0) {
-          return throwError(() => new Error('Le montant du paiement doit être supérieur à zéro.'));
-        }
-        if (dto.amountFcfa > inv.balanceFcfa) {
-          return throwError(() => new Error(
-            `Le montant dépasse le solde restant (${inv.balanceFcfa.toLocaleString('fr-FR')} FCFA).`,
-          ));
-        }
-
-        const year = new Date().getFullYear();
-        const count = this._payments().filter(p => p.receiptNumber.startsWith(`REC-${year}-`)).length;
-        const receiptNumber = `REC-${year}-${String(count + 1).padStart(4, '0')}`;
-
-        const payment: Payment = {
-          id: this.generateUuid(),
-          invoiceId: inv.id,
-          invoiceNumber: inv.invoiceNumber,
-          patientId: inv.patientId,
-          patientNumber: inv.patientNumber ?? '',
-          patientName: inv.patientName ?? '',
-          amountFcfa: dto.amountFcfa,
-          paymentMethod: dto.paymentMethod,
-          paymentDate: new Date().toISOString(),
-          reference: dto.reference,
-          receiptNumber,
-          createdBy: 'Dr. Omar Fall',
-          createdAt: new Date().toISOString(),
-        };
-
-        return this.invoiceService.registerPayment(inv.id, dto.amountFcfa).pipe(
-          map(() => payment),
-          tap(payment => {
-            this._payments.update(list => [payment, ...list]);
-            this.saveToStorage();
-          }),
-        );
+  list(params?: { search?: string; patientId?: string }): Observable<Payment[]> {
+    return forkJoin({
+      page: this.api.getPage<PaymentDto>('/payments', {
+        size: 1000,
+        patientId: params?.patientId,
       }),
-      delay(300),
+      patients: this.patientService.listAll().pipe(catchError(() => of([]))),
+      invoices: this.api.getPage<InvoiceRef>('/invoices', { size: 1000 })
+        .pipe(map(page => page.items), catchError(() => of([]))),
+    }).pipe(
+      map(({ page, patients, invoices }) => {
+        const patientsById = new Map(patients.map(patient => [patient.id, patient] as const));
+        const invoicesById = new Map(invoices.map(invoice => [invoice.id, invoice] as const));
+        const query = params?.search?.trim().toLocaleLowerCase('fr-FR');
+        return page.items
+          .map(item => this.toModel(item, patientsById.get(item.patientId), invoicesById.get(item.invoiceId)))
+          .filter(payment => !query ||
+            payment.receiptNumber.toLocaleLowerCase('fr-FR').includes(query) ||
+            (payment.patientName ?? '').toLocaleLowerCase('fr-FR').includes(query) ||
+            (payment.invoiceNumber ?? '').toLocaleLowerCase('fr-FR').includes(query));
+      }),
+      catchError(error => throwError(() => apiError(error))),
     );
   }
 
-  private generateUuid(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
+  create(dto: PaymentCreateDto): Observable<Payment> {
+    return this.api.post<PaymentDto>('/payments', {
+      invoiceId: dto.invoiceId,
+      amountFcfa: dto.amountFcfa,
+      paymentMethod: dto.paymentMethod,
+      reference: dto.reference,
+    }).pipe(
+      switchMap(payment => forkJoin({
+        patients: this.patientService.listAll().pipe(catchError(() => of([]))),
+        invoices: this.api.getPage<InvoiceRef>('/invoices', { size: 1000 })
+          .pipe(map(page => page.items), catchError(() => of([]))),
+        payment: of(payment),
+      })),
+      map(({ payment, patients, invoices }) => this.toModel(
+        payment,
+        patients.find(patient => patient.id === payment.patientId),
+        invoices.find(invoice => invoice.id === payment.invoiceId),
+      )),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
-  private loadFromStorage(): Payment[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+  /** Reçu de paiement PDF généré par le backend (logo du cabinet). */
+  downloadReceipt(id: string): Observable<HttpResponse<Blob>> {
+    return this.api.getBlob(`/payments/${id}/receipt`)
+      .pipe(catchError(error => throwError(() => apiError(error))));
   }
 
-  private saveToStorage(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._payments()));
+  private toModel(
+    item: PaymentDto,
+    patient?: { patientNumber?: string; firstName?: string; lastName?: string },
+    invoice?: InvoiceRef,
+  ): Payment {
+    return {
+      id: item.id,
+      invoiceId: item.invoiceId,
+      invoiceNumber: invoice?.invoiceNumber,
+      patientId: item.patientId,
+      patientNumber: patient?.patientNumber,
+      patientName: patient ? `${patient.firstName} ${patient.lastName}` : undefined,
+      amountFcfa: item.amountFcfa,
+      paymentMethod: item.paymentMethod,
+      paymentDate: item.paymentDate,
+      reference: item.reference,
+      receiptNumber: item.receiptNumber,
+      createdBy: item.createdBy,
+      createdAt: item.paymentDate,
+    };
   }
 }

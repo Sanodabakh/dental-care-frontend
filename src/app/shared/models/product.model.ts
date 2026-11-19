@@ -10,7 +10,7 @@ export interface Product {
   purchasePriceFcfa: number;
   supplier?: string;
   expirationDate?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface StockMovement {

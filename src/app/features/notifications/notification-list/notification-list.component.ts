@@ -64,7 +64,7 @@ export class NotificationListComponent implements OnInit {
   statusLabel(status: NotificationStatus): string {
     const labels: Record<NotificationStatus, string> = {
       EN_ATTENTE: 'En attente',
-      ENVOYE: 'Envoyé',
+      ENVOYEE: 'Envoyée',
       ECHEC: 'Échec',
     };
     return labels[status];
@@ -73,7 +73,7 @@ export class NotificationListComponent implements OnInit {
   statusClass(status: NotificationStatus): string {
     const classes: Record<NotificationStatus, string> = {
       EN_ATTENTE: 'dc-badge-warning',
-      ENVOYE: 'dc-badge-success',
+      ENVOYEE: 'dc-badge-success',
       ECHEC: 'dc-badge-danger',
     };
     return classes[status];
@@ -81,12 +81,18 @@ export class NotificationListComponent implements OnInit {
 
   typeLabel(type: NotificationType): string {
     const labels: Record<NotificationType, string> = {
-      CONFIRMATION: 'Confirmation',
-      RAPPEL: 'Rappel',
-      MODIFICATION: 'Modification',
-      ANNULATION: 'Annulation',
-      SUIVI: 'Suivi',
+      RAPPEL_RDV: 'Rappel RDV',
+      CONFIRMATION_RDV: 'Confirmation RDV',
+      FACTURE: 'Facture',
+      RELANCE_PAIEMENT: 'Relance paiement',
+      AUTRE: 'Autre',
     };
     return labels[type];
+  }
+
+  channelLabel(channel: string): string {
+    if (channel === 'WHATSAPP') return 'WhatsApp';
+    if (channel === 'EMAIL') return 'E-mail';
+    return 'SMS';
   }
 }

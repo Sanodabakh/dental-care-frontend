@@ -26,6 +26,6 @@ export interface Invoice {
   balanceFcfa: number;
   status: InvoiceStatus;
   lines: InvoiceLine[];
-  createdAt: string;
+  createdAt?: string;
   validatedAt?: string;
 }

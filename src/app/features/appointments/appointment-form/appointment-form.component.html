@@ -36,16 +36,50 @@
                 </option>
               }
             </select>
+            @if (patients().length === 0) {
+              <p class="text-xs text-ink-light mt-1">
+                Tous les patients ont d&eacute;j&agrave; un rendez-vous.
+              </p>
+            } @else {
+              <p class="text-xs text-ink-light mt-1">
+                Seuls les patients sans rendez-vous sont propos&eacute;s.
+              </p>
+            }
             @if (fieldError('patientId'); as err) {
               <p class="form-error">{{ err }}</p>
             }
           </div>
 
           <div class="form-field form-field--full">
+            <label class="form-label">Patient déjà suivi — numéro de référence</label>
+            <div class="flex gap-2">
+              <input [ngModel]="referenceInput()" (ngModelChange)="onReferenceInput($event)"
+                (keyup.enter)="searchByReference()" class="dc-input"
+                placeholder="PAT-2026-0001" />
+              <button type="button" (click)="searchByReference()"
+                [disabled]="searchingReference()" class="dc-btn-secondary shrink-0">
+                {{ searchingReference() ? 'Recherche...' : 'Rechercher' }}
+              </button>
+            </div>
+            @if (referenceError()) {
+              <p class="form-error">{{ referenceError() }}</p>
+            } @else if (referencePatient(); as ref) {
+              <p class="text-xs text-ink-light mt-1">
+                {{ ref.patientNumber }} · {{ ref.firstName }} {{ ref.lastName }} —
+                autorisé pour un nouveau rendez-vous.
+              </p>
+            } @else {
+              <p class="text-xs text-ink-light mt-1">
+                Permet de planifier un nouveau rendez-vous pour un patient qui en a déjà un.
+              </p>
+            }
+          </div>
+
+          <div class="form-field form-field--full">
             <label class="form-label">Dentiste <span class="required">*</span></label>
             <select formControlName="dentistId" class="dc-input">
-              @for (d of dentists; track d.id) {
-                <option [value]="d.id">{{ d.name }}</option>
+              @for (d of dentists(); track d.id) {
+                <option [value]="d.id">{{ d.fullName }}</option>
               }
             </select>
           </div>

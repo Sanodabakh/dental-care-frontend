@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideCircleDollarSign as Cash, LucideLockKeyhole as Lock, LucideUnlockKeyhole as Unlock } from '@lucide/angular';
 import { CashRegisterService } from './services/cash-register.service';
@@ -13,7 +13,7 @@ import { LucideIconComponent } from '../../shared/components/lucide-icon/lucide-
   templateUrl: './cash-register.component.html',
   styleUrls: ['./cash-register.component.css'],
 })
-export class CashRegisterComponent {
+export class CashRegisterComponent implements OnInit {
   private readonly cashRegisterService = inject(CashRegisterService);
 
   readonly icons = { Cash, Lock, Unlock };
@@ -26,6 +26,14 @@ export class CashRegisterComponent {
   readonly saving = signal(false);
   readonly error = signal('');
   readonly success = signal('');
+
+  ngOnInit(): void {
+    this.cashRegisterService.refresh().subscribe({
+      error: error => this.error.set(
+        error instanceof Error ? error.message : 'Impossible de charger la caisse.',
+      ),
+    });
+  }
 
   updateOpeningAmount(value: number): void {
     this.openingAmount.set(Number.isFinite(value) && value >= 0 ? value : 0);

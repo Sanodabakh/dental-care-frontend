@@ -13,6 +13,7 @@ import {
 } from '@lucide/angular';
 import { ReportService } from '../report.service';
 import { PeriodReport, TopTreatment } from '../../../shared/models/report.model';
+import { saveBlob } from '../../../core/services/download';
 import { FcfaPipe } from '../../../shared/pipes/fcfa.pipe';
 
 @Component({
@@ -31,6 +32,7 @@ export class ReportsComponent implements OnInit {
   private readonly service = inject(ReportService);
 
   readonly loading = signal(true);
+  readonly downloading = signal(false);
   readonly error = signal('');
   readonly report = signal<PeriodReport | null>(null);
   readonly topTreatments = signal<TopTreatment[]>([]);
@@ -76,8 +78,23 @@ export class ReportsComponent implements OnInit {
     this.generate();
   }
 
+  /** Rapport PDF généré par le backend (logo, indicateurs, actes, paiements). */
   exportPdf(): void {
-    window.print();
+    if (!this.report()) {
+      return;
+    }
+    this.downloading.set(true);
+    this.error.set('');
+    this.service.downloadPdf(this.from(), this.to()).subscribe({
+      next: response => {
+        saveBlob(response, `rapport-${this.from()}_${this.to()}.pdf`);
+        this.downloading.set(false);
+      },
+      error: error => {
+        this.error.set(error instanceof Error ? error.message : 'Impossible de générer le rapport PDF.');
+        this.downloading.set(false);
+      },
+    });
   }
 
   exportExcel(): void {

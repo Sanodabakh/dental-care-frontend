@@ -1,8 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { LucideArrowLeft as ArrowLeft, LucidePrinter as Printer } from '@lucide/angular';
+import { LucideArrowLeft as ArrowLeft, LucideDownload as Download } from '@lucide/angular';
 import { InvoiceService } from '../invoice.service';
 import { Invoice, InvoiceStatus } from '../../../shared/models/invoice.model';
+import { saveBlob } from '../../../core/services/download';
 import { FcfaPipe } from '../../../shared/pipes/fcfa.pipe';
 import { DateFrPipe } from '../../../shared/pipes/date-fr.pipe';
 import { LucideIconComponent } from '../../../shared/components/lucide-icon/lucide-icon.component';
@@ -18,9 +19,10 @@ export class InvoiceDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly invoiceService = inject(InvoiceService);
 
-  readonly icons = { ArrowLeft, Printer };
+  readonly icons = { ArrowLeft, Download };
   readonly invoice = signal<Invoice | null>(null);
   readonly loading = signal(true);
+  readonly downloading = signal(false);
   readonly error = signal('');
 
   ngOnInit(): void {
@@ -40,6 +42,25 @@ export class InvoiceDetailComponent implements OnInit {
       error: error => {
         this.error.set(error instanceof Error ? error.message : 'Impossible de charger la facture.');
         this.loading.set(false);
+      },
+    });
+  }
+
+  downloadPdf(): void {
+    const invoice = this.invoice();
+    if (!invoice) {
+      return;
+    }
+    this.downloading.set(true);
+    this.error.set('');
+    this.invoiceService.downloadPdf(invoice.id).subscribe({
+      next: response => {
+        saveBlob(response, `facture-${invoice.invoiceNumber}.pdf`);
+        this.downloading.set(false);
+      },
+      error: error => {
+        this.error.set(error instanceof Error ? error.message : 'Impossible de générer la facture PDF.');
+        this.downloading.set(false);
       },
     });
   }
@@ -64,9 +85,5 @@ export class InvoiceDetailComponent implements OnInit {
       ANNULEE: 'dc-badge dc-badge-danger',
     };
     return classes[status];
-  }
-
-  print(): void {
-    window.print();
   }
 }

@@ -1,8 +1,39 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, delay, of, throwError } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { HttpResponse } from '@angular/common/http';
+import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { ApiService } from '../../core/services/api.service';
+import { apiError } from '../../core/services/api-error';
+import { PatientService } from '../patients/patient.service';
 import { Invoice, InvoiceLine, InvoiceStatus } from '../../shared/models/invoice.model';
 
-const STORAGE_KEY = 'dc_invoices';
+interface InvoiceLineDto {
+  id: string;
+  treatmentId?: string;
+  description: string;
+  quantity: number;
+  unitPriceFcfa: number;
+  lineTotalFcfa: number;
+}
+
+interface InvoiceSummaryDto {
+  id: string;
+  invoiceNumber: string;
+  patientId: string;
+  consultationId?: string;
+  invoiceDate: string;
+  subtotalFcfa: number;
+  discountFcfa: number;
+  totalFcfa: number;
+  paidFcfa: number;
+  balanceFcfa: number;
+  status: InvoiceStatus;
+  validatedAt?: string;
+}
+
+interface InvoiceDto extends InvoiceSummaryDto {
+  lines: InvoiceLineDto[];
+  createdAt: string;
+}
 
 export interface InvoiceCreateDto {
   patientId: string;
@@ -17,160 +48,126 @@ export interface InvoiceCreateDto {
 
 @Injectable({ providedIn: 'root' })
 export class InvoiceService {
-  private readonly _invoices = signal<Invoice[]>(this.loadFromStorage());
-  readonly invoices = this._invoices.asReadonly();
+  constructor(private api: ApiService, private patientService: PatientService) {}
 
-  list(params?: { search?: string; status?: InvoiceStatus | 'ALL' }): Observable<Invoice[]> {
-    let items = [...this._invoices()];
-    const query = params?.search?.trim().toLocaleLowerCase('fr-FR');
-    if (query) {
-      items = items.filter(invoice =>
-        invoice.invoiceNumber.toLocaleLowerCase('fr-FR').includes(query) ||
-        (invoice.patientName ?? '').toLocaleLowerCase('fr-FR').includes(query),
-      );
-    }
-    if (params?.status && params.status !== 'ALL') {
-      items = items.filter(invoice => invoice.status === params.status);
-    }
-    items.sort((a, b) => b.invoiceDate.localeCompare(a.invoiceDate));
-    return of(items).pipe(delay(200));
+  list(params?: { search?: string; status?: InvoiceStatus | 'ALL'; patientId?: string }): Observable<Invoice[]> {
+    return forkJoin({
+      page: this.api.getPage<InvoiceSummaryDto>('/invoices', {
+        status: params?.status && params.status !== 'ALL' ? params.status : undefined,
+        patientId: params?.patientId,
+        size: 1000,
+      }),
+      patients: this.patientService.listAll().pipe(catchError(() => of([]))),
+    }).pipe(
+      map(({ page, patients }) => {
+        const byId = new Map(patients.map(patient => [patient.id, patient] as const));
+        const query = params?.search?.trim().toLocaleLowerCase('fr-FR');
+        return page.items
+          .map(item => {
+            const patient = byId.get(item.patientId);
+            return this.toSummary(item, patient?.patientNumber,
+              patient ? `${patient.firstName} ${patient.lastName}` : undefined);
+          })
+          .filter(invoice => !query ||
+            invoice.invoiceNumber.toLocaleLowerCase('fr-FR').includes(query) ||
+            (invoice.patientName ?? '').toLocaleLowerCase('fr-FR').includes(query));
+      }),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
-  getById(id: string): Observable<Invoice | undefined> {
-    return of(this._invoices().find(invoice => invoice.id === id)).pipe(delay(150));
+  getById(id: string): Observable<Invoice> {
+    return forkJoin({
+      invoice: this.api.get<InvoiceDto>(`/invoices/${id}`),
+      patients: this.patientService.listAll().pipe(catchError(() => of([]))),
+    }).pipe(
+      map(({ invoice, patients }) => {
+        const patient = patients.find(item => item.id === invoice.patientId);
+        return this.toDetail(invoice, patient?.patientNumber,
+          patient ? `${patient.firstName} ${patient.lastName}` : undefined);
+      }),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
   findByNumber(invoiceNumber: string): Observable<Invoice | undefined> {
     const normalized = invoiceNumber.trim().toLocaleUpperCase('fr-FR');
-    return of(this._invoices().find(
-      invoice => invoice.invoiceNumber.toLocaleUpperCase('fr-FR') === normalized,
-    )).pipe(delay(150));
+    return this.list().pipe(
+      map(invoices => invoices.find(invoice =>
+        invoice.invoiceNumber.toLocaleUpperCase('fr-FR') === normalized)),
+    );
   }
 
   create(dto: InvoiceCreateDto): Observable<Invoice> {
-    if (dto.lines.length === 0) {
-      return throwError(() => new Error('Ajoutez au moins une ligne à la facture.'));
-    }
-    if (dto.lines.some(line =>
-      !line.description.trim() ||
-      !Number.isFinite(line.quantity) ||
-      !Number.isFinite(line.unitPriceFcfa) ||
-      line.quantity <= 0 ||
-      line.unitPriceFcfa < 0,
-    )) {
-      return throwError(() => new Error('Vérifiez les descriptions, quantités et prix.'));
-    }
-
-    const subtotalFcfa = dto.lines.reduce(
-      (sum, line) => sum + line.quantity * line.unitPriceFcfa,
-      0,
-    );
-    const discountFcfa = dto.discountFcfa ?? 0;
-    if (!Number.isFinite(discountFcfa) || discountFcfa < 0 || discountFcfa > subtotalFcfa) {
-      return throwError(() => new Error('La remise doit être comprise entre 0 et le sous-total.'));
-    }
-
-    const now = new Date().toISOString();
-    const invoice: Invoice = {
-      id: this.generateUuid(),
-      invoiceNumber: this.nextInvoiceNumber(),
+    return this.api.post<InvoiceDto>('/invoices', {
       patientId: dto.patientId,
-      patientNumber: dto.patientNumber,
-      patientName: dto.patientName,
       consultationId: dto.consultationId,
-      invoiceDate: now,
-      subtotalFcfa,
-      discountFcfa,
-      totalFcfa: subtotalFcfa - discountFcfa,
-      paidFcfa: 0,
-      balanceFcfa: subtotalFcfa - discountFcfa,
-      status: 'BROUILLON',
+      discountFcfa: dto.discountFcfa ?? 0,
       lines: dto.lines.map(line => ({
-        ...line,
-        id: this.generateUuid(),
-        lineTotalFcfa: line.quantity * line.unitPriceFcfa,
+        treatmentId: line.treatmentId,
+        description: line.description,
+        quantity: line.quantity,
+        unitPriceFcfa: line.unitPriceFcfa,
       })),
-      createdAt: now,
-    };
-
-    this._invoices.update(items => [invoice, ...items]);
-    this.saveToStorage();
-    return of(invoice).pipe(delay(300));
+    }).pipe(
+      map(invoice => this.toDetail(invoice, dto.patientNumber, dto.patientName)),
+      catchError(error => throwError(() => apiError(error))),
+    );
   }
 
   validate(id: string): Observable<Invoice> {
-    const existing = this._invoices().find(invoice => invoice.id === id);
-    if (!existing) return throwError(() => new Error('Facture introuvable.'));
-    if (existing.status !== 'BROUILLON') {
-      return throwError(() => new Error('Cette facture a déjà été validée.'));
-    }
+    return this.api.post<InvoiceDto>(`/invoices/${id}/validate`, {}).pipe(
+      map(invoice => this.toDetail(invoice)),
+      catchError(error => throwError(() => apiError(error))),
+    );
+  }
 
-    const updated: Invoice = {
-      ...existing,
-      status: existing.balanceFcfa <= 0 ? 'PAYEE' : 'VALIDEE',
-      validatedAt: new Date().toISOString(),
+  cancel(id: string): Observable<Invoice> {
+    return this.api.post<InvoiceDto>(`/invoices/${id}/cancel`, {}).pipe(
+      map(invoice => this.toDetail(invoice)),
+      catchError(error => throwError(() => apiError(error))),
+    );
+  }
+
+  /** Facture PDF générée par le backend (logo du cabinet). */
+  downloadPdf(id: string): Observable<HttpResponse<Blob>> {
+    return this.api.getBlob(`/invoices/${id}/pdf`)
+      .pipe(catchError(error => throwError(() => apiError(error))));
+  }
+
+  private toSummary(item: InvoiceSummaryDto, patientNumber?: string, patientName?: string): Invoice {
+    return {
+      id: item.id,
+      invoiceNumber: item.invoiceNumber,
+      patientId: item.patientId,
+      patientNumber,
+      patientName,
+      consultationId: item.consultationId,
+      invoiceDate: item.invoiceDate,
+      subtotalFcfa: item.subtotalFcfa,
+      discountFcfa: item.discountFcfa,
+      totalFcfa: item.totalFcfa,
+      paidFcfa: item.paidFcfa,
+      balanceFcfa: item.balanceFcfa,
+      status: item.status,
+      lines: [],
+      createdAt: item.invoiceDate,
+      validatedAt: item.validatedAt,
     };
-    this.replace(updated);
-    return of(updated).pipe(delay(200));
   }
 
-  registerPayment(id: string, amountFcfa: number): Observable<Invoice> {
-    const existing = this._invoices().find(invoice => invoice.id === id);
-    if (!existing) return throwError(() => new Error('Facture introuvable.'));
-    if (existing.status === 'BROUILLON') {
-      return throwError(() => new Error('La facture doit être validée avant paiement.'));
-    }
-    if (existing.status === 'ANNULEE') {
-      return throwError(() => new Error('Cette facture est annulée.'));
-    }
-    if (!Number.isFinite(amountFcfa) || amountFcfa <= 0) {
-      return throwError(() => new Error('Le montant du paiement doit être supérieur à zéro.'));
-    }
-    if (amountFcfa > existing.balanceFcfa) {
-      return throwError(() => new Error(
-        `Le montant dépasse le solde restant (${existing.balanceFcfa.toLocaleString('fr-FR')} FCFA).`,
-      ));
-    }
-
-    const paidFcfa = existing.paidFcfa + amountFcfa;
-    const balanceFcfa = Math.max(0, existing.totalFcfa - paidFcfa);
-    const updated: Invoice = {
-      ...existing,
-      paidFcfa,
-      balanceFcfa,
-      status: balanceFcfa === 0 ? 'PAYEE' : 'PARTIELLEMENT_PAYEE',
+  private toDetail(item: InvoiceDto, patientNumber?: string, patientName?: string): Invoice {
+    return {
+      ...this.toSummary(item, patientNumber, patientName),
+      lines: (item.lines ?? []).map(line => ({
+        id: line.id,
+        treatmentId: line.treatmentId,
+        description: line.description,
+        quantity: line.quantity,
+        unitPriceFcfa: line.unitPriceFcfa,
+        lineTotalFcfa: line.lineTotalFcfa,
+      })),
+      createdAt: item.createdAt,
     };
-    this.replace(updated);
-    return of(updated).pipe(delay(200));
-  }
-
-  private replace(updated: Invoice): void {
-    this._invoices.update(items => items.map(invoice => invoice.id === updated.id ? updated : invoice));
-    this.saveToStorage();
-  }
-
-  private nextInvoiceNumber(): string {
-    const year = new Date().getFullYear();
-    const count = this._invoices().filter(invoice =>
-      invoice.invoiceNumber.startsWith(`FAC-${year}-`),
-    ).length;
-    return `FAC-${year}-${String(count + 1).padStart(4, '0')}`;
-  }
-
-  private generateUuid(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
-      const random = (Math.random() * 16) | 0;
-      const value = character === 'x' ? random : (random & 0x3) | 0x8;
-      return value.toString(16);
-    });
-  }
-
-  private loadFromStorage(): Invoice[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) as Invoice[] : [];
-  }
-
-  private saveToStorage(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._invoices()));
   }
 }

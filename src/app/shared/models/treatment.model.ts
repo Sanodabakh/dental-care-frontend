@@ -7,7 +7,7 @@ export interface Treatment {
   priceFcfa: number;
   estimatedDurationMin?: number;
   active: boolean;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface TreatmentCreateDto {

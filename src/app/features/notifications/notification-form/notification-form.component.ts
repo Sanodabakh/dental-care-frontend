@@ -37,20 +37,24 @@ export class NotificationFormComponent {
   readonly error = signal<string | null>(null);
   readonly selectedPatient = signal<Patient | null>(null);
   readonly sent = signal(false);
-  readonly sentType = signal<NotificationType>('CONFIRMATION');
+  readonly sentType = signal<NotificationType>('CONFIRMATION_RDV');
   readonly patientNumberInput = signal('');
-  readonly type = signal<NotificationType>('CONFIRMATION');
+  readonly type = signal<NotificationType>('CONFIRMATION_RDV');
   readonly channel = signal<NotificationChannel>('SMS');
   readonly message = signal('');
 
   readonly types: Array<{ value: NotificationType; label: string }> = [
-    { value: 'CONFIRMATION', label: 'Confirmation de RDV' },
-    { value: 'RAPPEL', label: 'Rappel de RDV' },
-    { value: 'MODIFICATION', label: 'Modification' },
-    { value: 'ANNULATION', label: 'Annulation' },
-    { value: 'SUIVI', label: 'Rappel de suivi' },
+    { value: 'CONFIRMATION_RDV', label: 'Confirmation de RDV' },
+    { value: 'RAPPEL_RDV', label: 'Rappel de RDV' },
+    { value: 'FACTURE', label: 'Facture' },
+    { value: 'RELANCE_PAIEMENT', label: 'Relance de paiement' },
+    { value: 'AUTRE', label: 'Autre' },
   ];
-  readonly channels: NotificationChannel[] = ['SMS', 'WHATSAPP'];
+  readonly channels: Array<{ value: NotificationChannel; label: string }> = [
+    { value: 'SMS', label: 'SMS' },
+    { value: 'WHATSAPP', label: 'WhatsApp' },
+    { value: 'EMAIL', label: 'E-mail' },
+  ];
 
   searchPatient(): void {
     const number = this.patientNumberInput().trim().toUpperCase();
@@ -84,11 +88,11 @@ export class NotificationFormComponent {
     const patient = this.selectedPatient();
     if (!patient) return;
     const templates: Record<NotificationType, string> = {
-      CONFIRMATION: `Bonjour ${patient.firstName}, votre rendez-vous est confirmé. DentalCare.`,
-      RAPPEL: `Rappel : vous avez un rendez-vous prévu. DentalCare.`,
-      MODIFICATION: `Bonjour ${patient.firstName}, votre rendez-vous a été modifié. DentalCare.`,
-      ANNULATION: `Bonjour ${patient.firstName}, votre rendez-vous a été annulé. DentalCare.`,
-      SUIVI: `Bonjour ${patient.firstName}, il est temps de planifier votre contrôle. DentalCare.`,
+      CONFIRMATION_RDV: `Bonjour ${patient.firstName}, votre rendez-vous est confirmé. DentalCare.`,
+      RAPPEL_RDV: 'Rappel : vous avez un rendez-vous prévu. DentalCare.',
+      FACTURE: `Bonjour ${patient.firstName}, votre facture est disponible. DentalCare.`,
+      RELANCE_PAIEMENT: `Bonjour ${patient.firstName}, nous vous rappelons le solde de votre facture. DentalCare.`,
+      AUTRE: `Bonjour ${patient.firstName}, `,
     };
     this.message.set(templates[this.type()]);
   }
@@ -101,7 +105,9 @@ export class NotificationFormComponent {
   }
 
   onChannelChange(value: string): void {
-    if (value === 'SMS' || value === 'WHATSAPP') this.channel.set(value);
+    if (value === 'SMS' || value === 'WHATSAPP' || value === 'EMAIL') {
+      this.channel.set(value);
+    }
   }
 
   send(): void {

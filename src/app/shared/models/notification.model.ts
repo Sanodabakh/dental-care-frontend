@@ -1,19 +1,19 @@
 export type NotificationType =
-  | 'CONFIRMATION'
-  | 'RAPPEL'
-  | 'MODIFICATION'
-  | 'ANNULATION'
-  | 'SUIVI';
+  | 'RAPPEL_RDV'
+  | 'CONFIRMATION_RDV'
+  | 'FACTURE'
+  | 'RELANCE_PAIEMENT'
+  | 'AUTRE';
 
-export type NotificationChannel = 'SMS' | 'WHATSAPP';
-export type NotificationStatus = 'EN_ATTENTE' | 'ENVOYE' | 'ECHEC';
+export type NotificationChannel = 'SMS' | 'WHATSAPP' | 'EMAIL';
+export type NotificationStatus = 'EN_ATTENTE' | 'ENVOYEE' | 'ECHEC';
 
 export interface Notification {
   id: string;
   patientId: string;
-  patientNumber: string;
-  patientName: string;
-  patientPhone: string;
+  patientNumber?: string;
+  patientName?: string;
+  patientPhone?: string;
   type: NotificationType;
   channel: NotificationChannel;
   message: string;
@@ -25,9 +25,9 @@ export interface Notification {
 
 export interface NotificationCreateDto {
   patientId: string;
-  patientNumber: string;
-  patientName: string;
-  patientPhone: string;
+  patientNumber?: string;
+  patientName?: string;
+  patientPhone?: string;
   type: NotificationType;
   channel: NotificationChannel;
   message: string;

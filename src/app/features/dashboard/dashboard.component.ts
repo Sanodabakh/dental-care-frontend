@@ -13,11 +13,13 @@ import {
 } from '@lucide/angular';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import { forkJoin } from 'rxjs';
 
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { LucideIconComponent } from '../../shared/components/lucide-icon/lucide-icon.component';
 import { FcfaPipe } from '../../shared/pipes/fcfa.pipe';
 import { DashboardService } from './dashboard.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { DashboardStats } from '../../shared/models/dashboard.model';
 import { Appointment } from '../../shared/models/appointment.model';
 
@@ -33,15 +35,16 @@ import { Appointment } from '../../shared/models/appointment.model';
 })
 export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
+  private readonly auth = inject(AuthService);
 
   readonly icons = {
     Users, CalendarDays, Stethoscope, Wallet, FileText, Package, Plus, ArrowRight,
   };
 
-  // ============ ÉTATS ============
   readonly loading = signal(true);
   readonly stats = signal<DashboardStats | null>(null);
   readonly appointments = signal<Appointment[]>([]);
+  readonly userName = computed(() => this.auth.user()?.fullName ?? 'Docteur');
 
   readonly todayLabel = computed(() => {
     return new Intl.DateTimeFormat('fr-FR', {
@@ -49,7 +52,6 @@ export class DashboardComponent implements OnInit {
     }).format(new Date());
   });
 
-  // ============ GRAPHIQUES ============
   revenueChartData: ChartData<'bar'> = { labels: [], datasets: [] };
   appointmentChartData: ChartData<'bar'> = { labels: [], datasets: [] };
 
@@ -89,49 +91,58 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.dashboardService.getStats().subscribe(stats => {
-      this.stats.set(stats);
-      this.loading.set(false);
+    this.dashboardService.getStats().subscribe({
+      next: stats => {
+        this.stats.set(stats);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
     });
 
-    this.appointments.set(this.dashboardService.getTodayAppointments());
-    this.buildCharts();
+    this.dashboardService.getTodayAppointments().subscribe(items => {
+      this.appointments.set(items.map(appointment => ({
+        ...appointment,
+        startTime: appointment.startTime.length > 5
+          ? appointment.startTime.slice(11, 16)
+          : appointment.startTime,
+      })));
+    });
+
+    forkJoin({
+      revenue: this.dashboardService.getRevenueData(),
+      activity: this.dashboardService.getAppointmentActivityData(),
+    }).subscribe(({ revenue, activity }) => {
+      this.revenueChartData = {
+        labels: revenue.map(point => point.label),
+        datasets: [{
+          data: revenue.map(point => point.value),
+          backgroundColor: revenue.map((_, index) =>
+            index === revenue.length - 1 ? '#478FC7' : '#F0F4F7',
+          ),
+          borderRadius: 5,
+          borderSkipped: false,
+          maxBarThickness: 30,
+        }],
+      };
+
+      this.appointmentChartData = {
+        labels: activity.map(point => point.month),
+        datasets: [{
+          data: activity.map(point => point.count),
+          backgroundColor: activity.map((_, index) =>
+            index === activity.length - 1 ? '#39B3A9' : '#F0F4F7',
+          ),
+          borderRadius: 5,
+          borderSkipped: false,
+          maxBarThickness: 30,
+        }],
+      };
+    });
   }
 
-  private buildCharts(): void {
-    const revenue = this.dashboardService.getRevenueData();
-    this.revenueChartData = {
-      labels: revenue.map(r => r.label),
-      datasets: [{
-        data: revenue.map(r => r.value),
-        backgroundColor: revenue.map((_, index) =>
-          index === revenue.length - 1 ? '#478FC7' : '#F0F4F7',
-        ),
-        borderRadius: 5,
-        borderSkipped: false,
-        maxBarThickness: 30,
-      }],
-    };
-
-    const appointmentActivity = this.dashboardService.getAppointmentActivityData();
-    this.appointmentChartData = {
-      labels: appointmentActivity.map(point => point.month),
-      datasets: [{
-        data: appointmentActivity.map(point => point.count),
-        backgroundColor: appointmentActivity.map((_, index) =>
-          index === appointmentActivity.length - 1 ? '#39B3A9' : '#F0F4F7',
-        ),
-        borderRadius: 5,
-        borderSkipped: false,
-        maxBarThickness: 30,
-      }],
-    };
-  }
-
-  // ============ HELPERS ============
   initials(name: string | undefined): string {
     if (!name) return '?';
-    return name.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+    return name.split(' ').map(part => part[0]).slice(0, 2).join('').toUpperCase();
   }
 
   statusLabel(status: string): string {

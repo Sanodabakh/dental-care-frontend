@@ -5,6 +5,12 @@
       <div class="spinner"></div>
       <p>Chargement du dossier patient...</p>
     </div>
+  } @else if (error()) {
+    <div class="dc-card p-8 text-center">
+      <p class="font-semibold text-ink">Dossier introuvable</p>
+      <p class="mt-1 text-sm text-ink-light">{{ error() }}</p>
+      <a routerLink="/patients" class="dc-btn-primary mt-4">Retour aux patients</a>
+    </div>
   } @else if (patient(); as p) {
 
     <!-- HEADER -->
@@ -34,6 +40,9 @@
                 <span>· {{ p.gender === 'M' ? 'Homme' : 'Femme' }}</span>
               }
               <span>· Inscrit le {{ p.createdAt | dateFr }}</span>
+              @if (p.lastConsultation) {
+                <span>· Dernière visite le {{ p.lastConsultation | dateFr }}</span>
+              }
             </div>
           </div>
         </div>
@@ -69,9 +78,37 @@
     <!-- CONTENU DES ONGLETS -->
     <div class="tab-content dc-card">
 
+      @if (relatedLoading() && activeTab() !== 'info') {
+        <div class="empty-panel">
+          <div class="spinner"></div>
+          <p>Chargement des données du patient...</p>
+        </div>
+      }
+
       <!-- ONGLET 1 : INFORMATIONS -->
       @if (activeTab() === 'info') {
         <div class="tab-panel">
+          <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-lg bg-slate-50 p-4">
+              <p class="text-[10px] font-semibold uppercase tracking-wide text-ink-light">Rendez-vous à venir</p>
+              <p class="mt-1 text-xl font-bold text-primary">{{ upcomingAppointments() }}</p>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-4">
+              <p class="text-[10px] font-semibold uppercase tracking-wide text-ink-light">Consultations</p>
+              <p class="mt-1 text-xl font-bold text-primary">{{ consultations().length }}</p>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-4">
+              <p class="text-[10px] font-semibold uppercase tracking-wide text-ink-light">Factures</p>
+              <p class="mt-1 text-xl font-bold text-primary">{{ invoices().length }}</p>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-4">
+              <p class="text-[10px] font-semibold uppercase tracking-wide text-ink-light">Solde dû</p>
+              <p class="mt-1 text-xl font-bold" [class.text-danger]="balanceDue() > 0">
+                {{ balanceDue() | fcfa }}
+              </p>
+            </div>
+          </div>
+
           <h2 class="tab-panel__title">Informations personnelles</h2>
           <div class="info-grid">
             <div class="info-item">
@@ -91,165 +128,283 @@
               <span class="info-value">{{ p.gender === 'M' ? 'Homme' : (p.gender === 'F' ? 'Femme' : '—') }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">
-                <lucide-icon [img]="icons.Phone" [size]="12" /> Téléphone
-              </span>
+              <span class="info-label"><lucide-icon [img]="icons.Phone" [size]="12" /> Téléphone</span>
               <span class="info-value">{{ p.phone || '—' }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Téléphone secondaire</span>
+              <span class="info-label"><lucide-icon [img]="icons.Phone" [size]="12" /> Téléphone secondaire</span>
               <span class="info-value">{{ p.secondaryPhone || '—' }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">
-                <lucide-icon [img]="icons.Mail" [size]="12" /> E-mail
-              </span>
+              <span class="info-label"><lucide-icon [img]="icons.Mail" [size]="12" /> Email</span>
               <span class="info-value">{{ p.email || '—' }}</span>
             </div>
-            <div class="info-item info-item--full">
-              <span class="info-label">
-                <lucide-icon [img]="icons.MapPin" [size]="12" /> Adresse
-              </span>
+            <div class="info-item">
+              <span class="info-label"><lucide-icon [img]="icons.MapPin" [size]="12" /> Adresse</span>
               <span class="info-value">{{ p.address || '—' }}</span>
             </div>
-          </div>
-
-          <h2 class="tab-panel__title mt-6">Contact d'urgence</h2>
-          <div class="info-grid">
             <div class="info-item">
-              <span class="info-label">Nom</span>
+              <span class="info-label"><lucide-icon [img]="icons.AlertTriangle" [size]="12" /> Contact d'urgence</span>
               <span class="info-value">{{ p.emergencyContact || '—' }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Téléphone</span>
+              <span class="info-label"><lucide-icon [img]="icons.Phone" [size]="12" /> Téléphone d'urgence</span>
               <span class="info-value">{{ p.emergencyPhone || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Dernière consultation</span>
+              <span class="info-value">{{ p.lastConsultation ? (p.lastConsultation | dateFr) : '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Inscrit le</span>
+              <span class="info-value">{{ p.createdAt | dateFr }}</span>
             </div>
           </div>
         </div>
       }
 
-      <!-- ONGLET 2 : DOSSIER MÉDICAL -->
-      @if (activeTab() === 'medical') {
+      <!-- ONGLET 2 : RENDEZ-VOUS -->
+      @if (activeTab() === 'appointments') {
         <div class="tab-panel">
-          <h2 class="tab-panel__title">Dossier médical</h2>
-
-          <div class="medical-grid">
-            <div class="medical-card medical-card--danger">
-              <div class="medical-card__header">
-                <lucide-icon [img]="icons.AlertTriangle" [size]="16" />
-                <h3>Allergies</h3>
-              </div>
-              <p>Aucune allergie déclarée</p>
+          <h2 class="tab-panel__title">Rendez-vous ({{ appointments().length }})</h2>
+          @if (appointments().length === 0) {
+            <div class="empty-panel">
+              <lucide-icon [img]="icons.CalendarDays" [size]="32" class="text-ink-light" />
+              <p>Aucun rendez-vous pour ce patient</p>
+              <a [routerLink]="['/appointments/new']" [queryParams]="{ patientId: p.id }"
+                class="dc-btn-primary">Planifier un rendez-vous</a>
             </div>
-
-            <div class="medical-card medical-card--warning">
-              <div class="medical-card__header">
-                <lucide-icon [img]="icons.Heart" [size]="16" />
-                <h3>Maladies chroniques</h3>
-              </div>
-              <p>Aucune maladie chronique déclarée</p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="dc-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Heure</th>
+                    <th>Motif</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (appointment of appointments(); track appointment.id) {
+                    <tr>
+                      <td>{{ formatDate(appointment.startTime) }}</td>
+                      <td>{{ formatTime(appointment.startTime) }}</td>
+                      <td>{{ appointment.motif }}</td>
+                      <td>
+                        <span [class]="appointmentStatusClass(appointment.status)">
+                          {{ appointmentStatusLabel(appointment.status) }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
             </div>
-
-            <div class="medical-card medical-card--info">
-              <div class="medical-card__header">
-                <lucide-icon [img]="icons.Pill" [size]="16" />
-                <h3>Traitements en cours</h3>
-              </div>
-              <p>Aucun traitement médicamenteux</p>
-            </div>
-
-            <div class="medical-card">
-              <div class="medical-card__header">
-                <lucide-icon [img]="icons.FileText" [size]="16" />
-                <h3>Antécédents dentaires</h3>
-              </div>
-              <p>Aucun antécédent renseigné</p>
-            </div>
-          </div>
+          }
         </div>
       }
 
       <!-- ONGLET 3 : CONSULTATIONS -->
       @if (activeTab() === 'consultations') {
         <div class="tab-panel">
-          <div class="tab-panel__header">
-            <h2 class="tab-panel__title">Historique des consultations</h2>
-            <a [routerLink]="['/consultations/new']" [queryParams]="{ patientId: p.id }"
-               class="dc-btn-primary">
-              <lucide-icon [img]="icons.Plus" [size]="14" />
-              Nouvelle consultation
-            </a>
-          </div>
-          <div class="empty-panel">
-            <lucide-icon [img]="icons.Stethoscope" [size]="32" class="text-ink-light" />
-            <p>Aucune consultation enregistrée</p>
-          </div>
+          <h2 class="tab-panel__title">Consultations ({{ consultations().length }})</h2>
+          @if (consultations().length === 0) {
+            <div class="empty-panel">
+              <lucide-icon [img]="icons.Stethoscope" [size]="32" class="text-ink-light" />
+              <p>Aucune consultation enregistrée</p>
+            </div>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="dc-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Diagnostic</th>
+                    <th>Plan de traitement</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (consultation of consultations(); track consultation.id) {
+                    <tr>
+                      <td>{{ formatDate(consultation.consultationDate) }}</td>
+                      <td>{{ consultation.diagnosis || '—' }}</td>
+                      <td>{{ consultation.treatmentPlan || '—' }}</td>
+                      <td>
+                        <span [class]="consultationStatusClass(consultation.status)">
+                          {{ consultationStatusLabel(consultation.status) }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
         </div>
       }
 
       <!-- ONGLET 4 : ODONTOGRAMME -->
       @if (activeTab() === 'odontogram') {
         <div class="tab-panel">
-          <h2 class="tab-panel__title">Odontogramme</h2>
-          <div class="empty-panel">
-            <lucide-icon [img]="icons.Smile" [size]="32" class="text-ink-light" />
-            <p>Aucun odontogramme enregistré</p>
-            <a [routerLink]="['/odontograms', p.id]" class="dc-btn-primary mt-3">
-              <lucide-icon [img]="icons.Plus" [size]="14" />
-              Créer un odontogramme
+          <h2 class="tab-panel__title">Odontogramme ({{ teeth().length }} dent(s) observée(s))</h2>
+          @if (teeth().length === 0) {
+            <div class="empty-panel">
+              <lucide-icon [img]="icons.Smile" [size]="32" class="text-ink-light" />
+              <p>Aucune observation dentaire enregistrée</p>
+              <a [routerLink]="['/odontograms', p.id]" class="dc-btn-primary">Ouvrir l'odontogramme</a>
+            </div>
+          } @else {
+            <div class="mb-4 flex flex-wrap gap-2">
+              @for (tooth of teeth(); track tooth.toothNumber) {
+                <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs">
+                  <span class="h-2.5 w-2.5 rounded-full border border-slate-200"
+                    [style.background]="conditionColor(tooth.currentCondition)"></span>
+                  <strong>Dent {{ tooth.toothNumber }}</strong>
+                  <span class="text-ink-light">{{ conditionLabel(tooth.currentCondition) }}</span>
+                </span>
+              }
+            </div>
+            <a [routerLink]="['/odontograms', p.id]" class="dc-btn-primary">
+              Ouvrir l'odontogramme complet
             </a>
-          </div>
+          }
         </div>
       }
 
-      <!-- ONGLET 5 : RENDEZ-VOUS -->
-      @if (activeTab() === 'appointments') {
-        <div class="tab-panel">
-          <div class="tab-panel__header">
-            <h2 class="tab-panel__title">Rendez-vous</h2>
-            <a [routerLink]="['/appointments/new']" [queryParams]="{ patientId: p.id }"
-               class="dc-btn-primary">
-              <lucide-icon [img]="icons.Plus" [size]="14" />
-              Nouveau rendez-vous
-            </a>
-          </div>
-          <div class="empty-panel">
-            <lucide-icon [img]="icons.CalendarDays" [size]="32" class="text-ink-light" />
-            <p>Aucun rendez-vous planifié</p>
-          </div>
-        </div>
-      }
-
-      <!-- ONGLET 6 : FACTURES -->
+      <!-- ONGLET 5 : FACTURES -->
       @if (activeTab() === 'invoices') {
         <div class="tab-panel">
-          <h2 class="tab-panel__title">Factures</h2>
-          <div class="empty-panel">
-            <lucide-icon [img]="icons.Receipt" [size]="32" class="text-ink-light" />
-            <p>Aucune facture enregistrée</p>
-          </div>
+          <h2 class="tab-panel__title">Factures ({{ invoices().length }})</h2>
+          @if (invoices().length === 0) {
+            <div class="empty-panel">
+              <lucide-icon [img]="icons.Receipt" [size]="32" class="text-ink-light" />
+              <p>Aucune facture enregistrée</p>
+              <a routerLink="/billing/new" class="dc-btn-primary">Créer une facture</a>
+            </div>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="dc-table">
+                <thead>
+                  <tr>
+                    <th>N° facture</th>
+                    <th>Date</th>
+                    <th class="text-right">Total</th>
+                    <th class="text-right">Payé</th>
+                    <th class="text-right">Solde</th>
+                    <th>Statut</th>
+                    <th class="text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (invoice of invoices(); track invoice.id) {
+                    <tr>
+                      <td class="font-semibold text-primary">{{ invoice.invoiceNumber }}</td>
+                      <td>{{ invoice.invoiceDate | dateFr }}</td>
+                      <td class="text-right">{{ invoice.totalFcfa | fcfa }}</td>
+                      <td class="text-right">{{ invoice.paidFcfa | fcfa }}</td>
+                      <td class="text-right font-semibold">{{ invoice.balanceFcfa | fcfa }}</td>
+                      <td><span [class]="invoiceStatusClass(invoice.status)">{{ invoiceStatusLabel(invoice.status) }}</span></td>
+                      <td class="text-right">
+                        <a [routerLink]="['/billing', invoice.id]" class="row-btn" title="Voir la facture">
+                          <lucide-icon [img]="icons.FileText" [size]="15" />
+                        </a>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
         </div>
       }
 
-      <!-- ONGLET 7 : PAIEMENTS -->
+      <!-- ONGLET 6 : PAIEMENTS -->
       @if (activeTab() === 'payments') {
         <div class="tab-panel">
-          <h2 class="tab-panel__title">Paiements</h2>
-          <div class="empty-panel">
-            <lucide-icon [img]="icons.Wallet" [size]="32" class="text-ink-light" />
-            <p>Aucun paiement enregistré</p>
-          </div>
+          <h2 class="tab-panel__title">Paiements ({{ payments().length }}) — {{ totalPaid() | fcfa }} encaissés</h2>
+          @if (payments().length === 0) {
+            <div class="empty-panel">
+              <lucide-icon [img]="icons.Wallet" [size]="32" class="text-ink-light" />
+              <p>Aucun paiement enregistré</p>
+            </div>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="dc-table">
+                <thead>
+                  <tr>
+                    <th>N° reçu</th>
+                    <th>Date</th>
+                    <th>Mode</th>
+                    <th class="text-right">Montant</th>
+                    <th class="text-right">Reçu PDF</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (payment of payments(); track payment.id) {
+                    <tr>
+                      <td class="font-semibold text-primary">{{ payment.receiptNumber }}</td>
+                      <td>{{ formatDate(payment.paymentDate) }}</td>
+                      <td>{{ methodLabel(payment.paymentMethod) }}</td>
+                      <td class="text-right font-semibold">{{ payment.amountFcfa | fcfa }}</td>
+                      <td class="text-right">
+                        <button type="button" class="row-btn" title="Télécharger le reçu"
+                          (click)="downloadReceipt(payment)" [disabled]="downloadingId() === payment.id">
+                          <lucide-icon [img]="icons.Download" [size]="15" />
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
         </div>
       }
 
-      <!-- ONGLET 8 : DOCUMENTS -->
-      @if (activeTab() === 'documents') {
+      <!-- ONGLET 7 : NOTIFICATIONS -->
+      @if (activeTab() === 'notifications') {
         <div class="tab-panel">
-          <h2 class="tab-panel__title">Documents</h2>
-          <div class="empty-panel">
-            <lucide-icon [img]="icons.FolderOpen" [size]="32" class="text-ink-light" />
-            <p>Aucun document téléversé</p>
-          </div>
+          <h2 class="tab-panel__title">Notifications ({{ notifications().length }})</h2>
+          @if (notifications().length === 0) {
+            <div class="empty-panel">
+              <lucide-icon [img]="icons.Bell" [size]="32" class="text-ink-light" />
+              <p>Aucune notification pour ce patient</p>
+              <a [routerLink]="['/notifications/new']" class="dc-btn-primary">Envoyer une notification</a>
+            </div>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="dc-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Canal</th>
+                    <th>Statut</th>
+                    <th>Message</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (notification of notifications(); track notification.id) {
+                    <tr>
+                      <td>{{ formatDate(notification.createdAt) }}</td>
+                      <td>{{ notificationTypeLabel(notification.type) }}</td>
+                      <td>{{ channelLabel(notification.channel) }}</td>
+                      <td>
+                        <span [class]="notificationStatusClass(notification.status)">
+                          {{ notificationStatusLabel(notification.status) }}
+                        </span>
+                      </td>
+                      <td class="max-w-[320px] truncate" [title]="notification.message">
+                        {{ notification.message }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
         </div>
       }
     </div>

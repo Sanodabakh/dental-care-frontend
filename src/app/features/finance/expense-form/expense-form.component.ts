@@ -19,10 +19,16 @@ export class ExpenseFormComponent {
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly categories = [
-    'Loyer', 'Salaires', 'Fournitures', 'Électricité', 'Eau',
-    'Internet', 'Maintenance', 'Marketing', 'Autres',
+    'Loyer', 'Salaires', 'Fournitures', 'Équipement',
+    'Maintenance', 'Transport', 'Marketing', 'Autre',
   ];
-  readonly paymentMethods = ['ESPECES', 'WAVE', 'ORANGE_MONEY', 'VIREMENT', 'CARTE'];
+  readonly paymentMethods = [
+    { value: 'ESPECES', label: 'Espèces' },
+    { value: 'MOBILE_MONEY', label: 'Mobile Money' },
+    { value: 'CARTE', label: 'Carte bancaire' },
+    { value: 'VIREMENT', label: 'Virement' },
+    { value: 'CHEQUE', label: 'Chèque' },
+  ];
 
   readonly form: FormGroup = this.fb.group({
     category: ['', [Validators.required]],

@@ -1,6 +1,7 @@
 export type ToothCondition =
-  | 'SAINE' | 'CARIE' | 'ABSENTE' | 'EXTRAITE' | 'OBTURATION'
-  | 'COURONNE' | 'IMPLANT' | 'ENDO' | 'FRACTURE' | 'MOBILITE' | 'PROTHESE';
+  | 'SAINE' | 'CARIE' | 'OBTURATION' | 'COURONNE' | 'DEVIALISEE'
+  | 'EXTRACTION_INDIQUEE' | 'EXTRACTEE' | 'IMPLANT' | 'PROTHESE'
+  | 'FRACTURE' | 'ABSENTE';
 
 export type ToothSurface = 'MESIAL' | 'DISTAL' | 'VESTIBULAR' | 'LINGUAL' | 'OCCLUSAL';
 

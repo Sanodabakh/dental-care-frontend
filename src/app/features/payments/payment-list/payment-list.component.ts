@@ -2,12 +2,14 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
+  LucideDownload as Download,
   LucideEye as Eye,
   LucidePlus as Plus,
   LucideSearch as Search,
 } from '@lucide/angular';
 import { PaymentService } from '../services/payment.service';
-import { Payment, PaymentMethod } from '../../../shared/models/payment.model';
+import { Payment, PaymentMethod, PAYMENT_METHOD_LABELS } from '../../../shared/models/payment.model';
+import { saveBlob } from '../../../core/services/download';
 import { FcfaPipe } from '../../../shared/pipes/fcfa.pipe';
 import { DateFrPipe } from '../../../shared/pipes/date-fr.pipe';
 import { LucideIconComponent } from '../../../shared/components/lucide-icon/lucide-icon.component';
@@ -22,10 +24,11 @@ import { LucideIconComponent } from '../../../shared/components/lucide-icon/luci
 export class PaymentListComponent implements OnInit {
   private readonly paymentService = inject(PaymentService);
 
-  readonly icons = { Eye, Plus, Search };
+  readonly icons = { Eye, Plus, Search, Download };
   readonly payments = signal<Payment[]>([]);
   readonly search = signal('');
   readonly loading = signal(true);
+  readonly downloadingId = signal<string | null>(null);
   readonly error = signal('');
 
   ngOnInit(): void {
@@ -52,15 +55,22 @@ export class PaymentListComponent implements OnInit {
     this.load();
   }
 
+  downloadReceipt(payment: Payment): void {
+    this.downloadingId.set(payment.id);
+    this.error.set('');
+    this.paymentService.downloadReceipt(payment.id).subscribe({
+      next: response => {
+        saveBlob(response, `recu-${payment.receiptNumber}.pdf`);
+        this.downloadingId.set(null);
+      },
+      error: error => {
+        this.error.set(error instanceof Error ? error.message : 'Impossible de générer le reçu PDF.');
+        this.downloadingId.set(null);
+      },
+    });
+  }
+
   methodLabel(method: PaymentMethod): string {
-    const labels: Record<PaymentMethod, string> = {
-      ESPECES: 'Espèces',
-      WAVE: 'Wave',
-      ORANGE_MONEY: 'Orange Money',
-      VIREMENT: 'Virement',
-      CARTE: 'Carte bancaire',
-      AUTRE: 'Autre',
-    };
-    return labels[method];
+    return PAYMENT_METHOD_LABELS[method] ?? method;
   }
 }
